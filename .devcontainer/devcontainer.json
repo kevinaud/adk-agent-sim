@@ -1,0 +1,32 @@
+{
+  "name": "adk-agent-sim (Py3.14, uv)",
+  "image": "mcr.microsoft.com/devcontainers/python:3.14",
+  "features": {
+    "ghcr.io/devcontainers-extra/features/uv:1": {},
+    "ghcr.io/devcontainers/features/node:1": {},
+    "ghcr.io/devcontainers-extra/features/prettier:1": {},
+    "ghcr.io/devcontainers-extra/features/apt-get-packages:1": {
+			"packages": "jq,procps,snapd,vim,cloc"
+		}
+  },
+
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "python.defaultInterpreterPath": "${containerWorkspaceFolder}/.venv/bin/python",
+        "python.testing.pytestEnabled": true,
+        "editor.insertSpaces": true,
+        "editor.tabSize": 2
+      },
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "charliermarsh.ruff",
+        "ms-toolsai.jupyter",
+        "tamasfe.even-better-toml"
+      ]
+    }
+  },
+
+  "postCreateCommand": "bash .devcontainer/setup-env.sh"
+}
