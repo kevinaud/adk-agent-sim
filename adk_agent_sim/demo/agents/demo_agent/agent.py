@@ -14,7 +14,10 @@ def add(a: int, b: int) -> int:
 def get_demo_function_tool() -> FunctionTool:
   return FunctionTool(add)
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 55ecd18 (save)
 def get_demo_mcp_server_toolset() -> McpToolset:
   return McpToolset(
     connection_params=StreamableHTTPConnectionParams(
@@ -34,7 +37,11 @@ def get_demo_agent() -> Agent:
     Use the available MCP tools to perform requested calculations accurately and
     efficiently.
 """),
+<<<<<<< HEAD
     tools=[get_demo_function_tool(), get_demo_mcp_server_toolset()],
+=======
+    tools=[get_demo_function_tool(), get_demo_mcp_server_toolset()]
+>>>>>>> 55ecd18 (save)
   )
 
 
