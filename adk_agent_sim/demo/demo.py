@@ -1,4 +1,4 @@
-"""Core CLI app setup."""
+"""ADK Agent Sim demo app."""
 
 from __future__ import annotations
 
@@ -25,11 +25,11 @@ app = typer.Typer(
 
 
 @app.command()
-def hello(name: str = "World"):
-  """Say hello."""
+def run(port: int = 8888):
+  """Run demo."""
   log = get_logger()
-  log.info("saying_hello", name=name)
-  console.print(f"Hello [bold blue]{name}[/bold blue]!")
+  log.info("Running demo", port=port)
+  console.print(f"Starting demo app on port [bold blue]{port}[/bold blue]...")
 
 
 if __name__ == "__main__":

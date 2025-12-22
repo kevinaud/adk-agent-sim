@@ -15,10 +15,13 @@ dependencies = [
   "structlog>=25.5.0",
   "tenacity>=9.1.2",
   "httpx>=0.28.1",
+  "google-adk>=1.21.0",
+  "fastmcp>=2.14.0",
 ]
 
 [project.scripts]
-adk-agent-sim = "adk_agent_sim.cli.app:app"
+demo = "adk_agent_sim.demo.demo:app"
+demo-server = "adk_agent_sim.demo.mcp_servers.demo_server:run_server"
 
 [tool.setuptools]
 packages = ["adk_agent_sim"]
