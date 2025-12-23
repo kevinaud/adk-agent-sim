@@ -6,6 +6,10 @@
             100
         ]
     },
+    "[python]": {
+        "editor.tabSize": 2,
+        "editor.insertSpaces": true
+    },
     "markdown.extension.preview.autoShowPreviewToSide": true,
     "files.exclude": {
         "**/__pycache__": true,
