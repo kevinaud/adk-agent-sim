@@ -5,6 +5,15 @@
 **Status**: Draft  
 **Input**: User description: "Core workflow where a user simulates an agent's execution path"
 
+## Clarifications
+
+### Session 2025-12-23
+- Q: When a user closes the browser or navigates away mid-session, how should the simulator handle incomplete sessions? → A: **Ephemeral sessions only** - Sessions exist only in memory; closing browser loses all state. No persistence.
+- Q: How should the `eval_id` (required for the Golden Trace export) be generated? → A: **Agent Name + Timestamp** - Format: `{snake_case_agent_name}_{iso_timestamp}` (e.g., `math_agent_2025-12-23T14:30:00`).
+- Q: The `AgentSimulator` accepts a dictionary of agents. How should the simulator handle multiple agents? → A: **Selection at Startup** - User selects ONE agent to simulate upon launching the UI; cannot switch mid-session.
+- Q: How should the Agent's **System Instructions** (persona/prompt) be presented to the human wizard? → A: **Prominent but Collapsible** - Visible by default to guide roleplay, but can be collapsed to save space.
+- Q: How should the simulator handle **tool timeouts**? → A: **Manual Abort** - No enforced timeout; show elapsed time and provide a "Cancel" button for the user.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Execute a Simple Tool Call (Priority: P1)
@@ -107,7 +116,7 @@ A developer executes a tool that throws an exception (e.g., network error, inval
 - **Empty tool list**: What happens when an Agent has no tools? The UI must still allow submitting a final response directly.
 - **Nested/complex parameters**: How does the UI handle tools with deeply nested object parameters? (Answer: Recursively rendered nested forms matching the schema structure)
 - **Large tool output**: What if a tool returns megabytes of data? (Answer: Truncate display, full data in export)
-- **Session abandonment**: What if the user closes the browser mid-session? (Answer: Session state should be recoverable or clearly marked as incomplete)
+- **Session abandonment**: What if the user closes the browser mid-session? (Answer: Session state is lost immediately; no persistence)
 - **Concurrent tool execution**: Can the user execute multiple tools simultaneously? (Answer: No, tools execute sequentially per Wizard of Oz model)
 
 ## Requirements *(mandatory)*
@@ -118,67 +127,71 @@ A developer executes a tool that throws an exception (e.g., network error, inval
 
 - **FR-001**: System MUST inspect the Agent's available tools via `agent.canonical_tools()`.
 - **FR-002**: System MUST retrieve each tool's schema via `tool._get_declaration()` returning a `FunctionDeclaration`.
-- **FR-003**: System MUST dynamically render input forms based on `FunctionDeclaration.parameters` schema.
-- **FR-004**: System MUST map schema types to appropriate UI widgets:
-  - `STRING` → text input
-  - `INTEGER` / `NUMBER` → number input
-  - `BOOLEAN` → checkbox
-  - `ENUM` → dropdown/select
-  - `OBJECT` → recursively rendered nested form with fields for each property
-  - `ARRAY` → dynamic list widget allowing add/remove of items, with each item rendered according to the array's `items` schema
-- **FR-005**: System MUST display parameter descriptions from the schema to guide user input.
-- **FR-006**: System MUST enforce `required` field constraints before allowing execution.
+- **FR-003**: System MUST dynamically render input forms based on `FunctionDeclaration.parameters`, which is a `google.genai.types.Schema` instance.
+- **FR-004**: System MUST implement a universal `Schema → Form` renderer that maps `google.genai.types.Schema` instances to UI widgets based on the `Schema.type` field (`google.genai.types.Type` enum):
+  - `Type.STRING` → text input
+  - `Type.INTEGER` / `Type.NUMBER` → number input
+  - `Type.BOOLEAN` → checkbox
+  - `Type.STRING` with `Schema.enum` populated → dropdown/select
+  - `Type.OBJECT` → recursively rendered nested form with fields for each `Schema.properties` entry
+  - `Type.ARRAY` → dynamic list widget allowing add/remove of items, with each item rendered according to `Schema.items`
+- **FR-005**: System MUST display `Schema.description` for each field to guide user input.
+- **FR-006**: System MUST enforce `Schema.required` field constraints before allowing execution.
 
 #### Simulation Workflow
 
-- **FR-007**: System MUST allow user to provide an initial "User Query" to start a session.
-- **FR-008**: System MUST render a structured input form if the Agent defines an `input_schema`.
-- **FR-009**: System MUST display the conversation history including all prior steps.
-- **FR-010**: System MUST present two action choices at each step: "Call a Tool" or "Send Final Response".
-- **FR-011**: System MUST execute the actual underlying tool code via `tool.run_async()`.
-- **FR-012**: System MUST capture and display tool outputs in the history.
-- **FR-013**: System MUST render a structured output form if the Agent defines an `output_schema`.
-- **FR-014**: System MUST validate final response against `output_schema` if defined.
+- **FR-007**: System MUST allow user to select a single Agent to simulate if multiple are provided in the `AgentSimulator` constructor. This selection happens once at startup.
+- **FR-008**: System MUST display the Agent's system instructions (retrieved via `agent.canonical_instruction()`) prominently in the UI. This section MUST be collapsible.
+- **FR-009**: System MUST allow user to provide an initial "User Query" to start a session.
+- **FR-010**: System MUST render a structured input form if the Agent defines an `input_schema` (Pydantic model). The Pydantic model MUST be converted to `google.genai.types.Schema` via `Schema.from_json_schema(JSONSchema.model_validate(Model.model_json_schema()))` and rendered using the same `Schema → Form` logic as tool parameters (FR-004).
+- **FR-011**: System MUST display the conversation history including all prior steps.
+- **FR-012**: System MUST present two action choices at each step: "Call a Tool" or "Send Final Response".
+- **FR-013**: System MUST execute the actual underlying tool code via `tool.run_async()`.
+- **FR-014**: System MUST capture and display tool outputs in the history.
+- **FR-015**: System MUST render a structured output form if the Agent defines an `output_schema` (Pydantic model). The Pydantic model MUST be converted to `google.genai.types.Schema` and rendered using the same `Schema → Form` logic (FR-004).
+- **FR-016**: System MUST validate final response against `output_schema` if defined.
 
 #### History & Context
 
-- **FR-015**: System MUST maintain a persistent, chronological session log.
-- **FR-016**: History MUST display: user query, each tool invocation (name + inputs), each tool output, and final response.
-- **FR-017**: History entries MUST be visually distinguishable by type (user input, tool call, tool output, final response, error).
+- **FR-017**: System MUST maintain a persistent, chronological session log.
+- **FR-018**: History MUST display: user query, each tool invocation (name + inputs), each tool output, and final response.
+- **FR-019**: History entries MUST be visually distinguishable by type (user input, tool call, tool output, final response, error).
 
 #### Golden Trace Export
 
-- **FR-018**: System MUST generate a JSON export upon session completion.
-- **FR-019**: Exported JSON MUST conform to ADK `EvalCase` Pydantic model structure.
-- **FR-020**: Export MUST include `eval_id` (unique identifier for the evaluation case).
-- **FR-021**: Export MUST include `conversation` as a list of `Invocation` objects.
-- **FR-022**: Each `Invocation.user_content` MUST contain the user query as `genai_types.Content`.
-- **FR-023**: Each `Invocation.final_response` MUST contain the human's final answer as `genai_types.Content`.
-- **FR-024**: Each `Invocation.intermediate_data` MUST be an `IntermediateData` object containing:
+- **FR-020**: System MUST generate a JSON export upon session completion.
+- **FR-021**: Exported JSON MUST conform to ADK `EvalCase` Pydantic model structure.
+- **FR-022**: Export MUST include `eval_id` generated as `{snake_case_agent_name}_{iso_timestamp}` (e.g., `my_agent_2025-12-23T10:00:00`).
+- **FR-023**: Export MUST include `conversation` as a list of `Invocation` objects.
+- **FR-024**: Each `Invocation.user_content` MUST contain the user query as `genai_types.Content`.
+- **FR-025**: Each `Invocation.final_response` MUST contain the human's final answer as `genai_types.Content`.
+- **FR-026**: Each `Invocation.intermediate_data` MUST be an `IntermediateData` object containing:
   - `tool_uses`: Chronological list of `genai_types.FunctionCall`
   - `tool_responses`: Chronological list of `genai_types.FunctionResponse`
-- **FR-025**: Export MUST include `creation_timestamp` for the session.
+- **FR-027**: Export MUST include `creation_timestamp` for the session.
 
 #### Error Handling
 
-- **FR-026**: System MUST catch exceptions raised during tool execution.
-- **FR-027**: System MUST display tool errors in the history with exception type and message.
-- **FR-028**: System MUST allow the session to continue after a tool error.
-- **FR-029**: Tool errors MUST be represented in the Golden Trace export as `FunctionResponse` objects with error payloads.
+- **FR-028**: System MUST catch exceptions raised during tool execution.
+- **FR-029**: System MUST display tool errors in the history with exception type and message.
+- **FR-030**: System MUST allow the session to continue after a tool error.
+- **FR-031**: Tool errors MUST be represented in the Golden Trace export as `FunctionResponse` objects with error payload `{"error": {"type": str, "message": str}}`.
+- **FR-032**: System MUST display a stopwatch/timer during tool execution showing elapsed time.
+- **FR-033**: System MUST provide a "Cancel" or "Abort" button during tool execution to manually stop a long-running tool.
 
 #### Context Construction
 
-- **FR-030**: System MUST construct a valid `ToolContext` for tool execution.
-- **FR-031**: System MUST construct a valid `InvocationContext` as required by ADK tool methods.
+- **FR-034**: System MUST construct a valid `ToolContext` for tool execution.
+- **FR-035**: System MUST construct a valid `InvocationContext` as required by ADK tool methods.
 
 ### Key Entities
 
-- **Session**: Represents a single simulation run. Contains the agent reference, conversation history, and state (active/completed).
+- **SimulationSession**: Represents a single simulation run. Contains the agent reference, conversation history, and state (active/completed).
 - **HistoryEntry**: A single event in the session timeline. Discriminated union of: UserQuery, ToolCall, ToolOutput, ToolError, FinalResponse.
 - **ToolCall**: Records a tool invocation. Contains tool name, input arguments, timestamp.
 - **ToolOutput**: Records a tool's return value. Contains result data, timestamp, duration.
-- **ToolError**: Records a failed tool execution. Contains exception type, message, traceback.
-- **GoldenTrace**: The exportable `EvalCase`-compatible JSON structure.
+- **ToolError**: Records a failed tool execution. Contains exception type, message, and optional traceback (see data-model.md).
+- **GoldenTrace**: The exportable `EvalCase`-compatible JSON structure (built by `GoldenTraceBuilder`).
 
 ## Success Criteria *(mandatory)*
 
@@ -186,7 +199,7 @@ A developer executes a tool that throws an exception (e.g., network error, inval
 
 - **SC-001**: A developer can complete a simulation session (query → tool calls → final response) in under 5 minutes for a typical 3-tool workflow.
 - **SC-002**: Exported Golden Traces parse successfully as valid `EvalCase` objects using ADK's Pydantic model 100% of the time.
-- **SC-003**: All tool parameter types from `FunctionDeclaration` (STRING, INTEGER, NUMBER, BOOLEAN, ENUM, OBJECT, ARRAY) render correctly in the UI.
+- **SC-003**: All `google.genai.types.Type` values supported by `Schema` (STRING, INTEGER, NUMBER, BOOLEAN, OBJECT, ARRAY) plus enum detection render correctly in the UI.
 - **SC-004**: Tool execution errors are captured and displayed with sufficient detail to diagnose the issue (exception type + message at minimum).
 - **SC-005**: Session history correctly reflects all operations in chronological order with no missing or duplicate entries.
 
