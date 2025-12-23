@@ -26,14 +26,14 @@ tests/                   # Test files
 
 **Purpose**: Project initialization and package structure
 
-- [ ] T001 Add `nicegui>=2.0.0` dependency to pyproject.toml
-- [ ] T002 [P] Create package structure: `adk_agent_sim/models/__init__.py`
-- [ ] T003 [P] Create package structure: `adk_agent_sim/ui/__init__.py`
-- [ ] T004 [P] Create package structure: `adk_agent_sim/ui/pages/__init__.py`
-- [ ] T005 [P] Create package structure: `adk_agent_sim/ui/components/__init__.py`
-- [ ] T006 [P] Create package structure: `adk_agent_sim/execution/__init__.py`
-- [ ] T007 [P] Create package structure: `adk_agent_sim/export/__init__.py`
-- [ ] T008 Run `uv sync` to install dependencies
+- [X] T001 Add `nicegui>=2.0.0` dependency to pyproject.toml
+- [X] T002 [P] Create package structure: `adk_agent_sim/models/__init__.py`
+- [X] T003 [P] Create package structure: `adk_agent_sim/ui/__init__.py`
+- [X] T004 [P] Create package structure: `adk_agent_sim/ui/pages/__init__.py`
+- [X] T005 [P] Create package structure: `adk_agent_sim/ui/components/__init__.py`
+- [X] T006 [P] Create package structure: `adk_agent_sim/execution/__init__.py`
+- [X] T007 [P] Create package structure: `adk_agent_sim/export/__init__.py`
+- [X] T008 Run `uv sync` to install dependencies
 
 ---
 
@@ -43,14 +43,14 @@ tests/                   # Test files
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T009 Implement `SessionState` enum and `SimulationSession` model in `adk_agent_sim/models/session.py`
-- [ ] T010 [P] Implement `HistoryEntry` discriminated union types (`UserQuery`, `ToolCall`, `ToolOutput`, `ToolError`, `FinalResponse`) in `adk_agent_sim/models/history.py`
-- [ ] T011 [P] Export models from `adk_agent_sim/models/__init__.py`
-- [ ] T012 Implement `create_tool_context()` and `create_invocation_context()` in `adk_agent_sim/execution/context_factory.py` (FR-034, FR-035)
-- [ ] T013 Implement `ToolRunner` class with `execute()` and `cancel()` methods in `adk_agent_sim/execution/tool_runner.py` (FR-013, FR-028, FR-033)
-- [ ] T014 [P] Create shared CSS constants in `adk_agent_sim/ui/styles.py`
-- [ ] T015 Implement `SimulationController` class in `adk_agent_sim/controller.py` with agent selection, tool lookup, and session management
-- [ ] T016 Export `SimulationController` from `adk_agent_sim/__init__.py`
+- [X] T09 Implement `SessionState` enum and `SimulationSession` model in `adk_agent_sim/models/session.py`
+- [X] T010 [P] Implement `HistoryEntry` discriminated union types (`UserQuery`, `ToolCall`, `ToolOutput`, `ToolError`, `FinalResponse`) in `adk_agent_sim/models/history.py`
+- [X] T011 [P] Export models from `adk_agent_sim/models/__init__.py`
+- [X] T012 Implement `create_tool_context()` and `create_invocation_context()` in `adk_agent_sim/execution/context_factory.py` (FR-034, FR-035)
+- [X] T013 Implement `ToolRunner` class with `execute()` and `cancel()` methods in `adk_agent_sim/execution/tool_runner.py` (FR-013, FR-028, FR-033)
+- [X] T014 [P] Create shared CSS constants in `adk_agent_sim/ui/styles.py`
+- [X] T015 Implement `SimulationController` class in `adk_agent_sim/controller.py` with agent selection, tool lookup, and session management
+- [X] T016 Export `SimulationController` from `adk_agent_sim/__init__.py`
 
 **Checkpoint**: Foundation ready - user story implementation can now begin
 
@@ -64,23 +64,23 @@ tests/                   # Test files
 
 ### Implementation for User Story 1
 
-- [ ] T017 [US1] Implement universal `render_schema_form()` function in `adk_agent_sim/ui/components/schema_form.py` supporting:
+- [X] T017 [US1] Implement universal `render_schema_form()` function in `adk_agent_sim/ui/components/schema_form.py` supporting:
   - `Type.STRING` → `ui.input`
   - `Type.INTEGER` / `Type.NUMBER` → `ui.number`
   - `Type.BOOLEAN` → `ui.checkbox`
   - `Type.STRING` with `Schema.enum` → `ui.select`
   - (FR-004)
-- [ ] T018 [US1] Add recursive OBJECT handling to `schema_form.py` for nested `Schema.properties` (FR-004)
-- [ ] T019 [US1] Add ARRAY handling to `schema_form.py` with dynamic add/remove for `Schema.items` (FR-004)
-- [ ] T020 [US1] Add `Schema.description` display as field hints in `schema_form.py` (FR-005)
-- [ ] T021 [US1] Add `Schema.required` validation before form submission in `schema_form.py` (FR-006)
-- [ ] T022 [US1] Implement tool executor component with form + execute button in `adk_agent_sim/ui/components/tool_executor.py`
-- [ ] T023 [US1] Add execution timer display (stopwatch) to `tool_executor.py` (FR-032)
-- [ ] T024 [US1] Add cancel button to `tool_executor.py` that triggers `ToolRunner.cancel()` (FR-033)
-- [ ] T025 [US1] Implement action panel component with tool selector dropdown in `adk_agent_sim/ui/components/action_panel.py`
-- [ ] T026 [US1] Implement history panel component rendering `HistoryEntry` variants in `adk_agent_sim/ui/components/history_panel.py` (FR-018)
-- [ ] T027 [US1] Add distinct visual styles per entry type (user input, tool call, tool output) in `history_panel.py` (FR-019)
-- [ ] T028 [US1] Wire `controller.execute_tool()` to add `ToolCall` + `ToolOutput` entries to session history (FR-014)
+- [X] T018 [US1] Add recursive OBJECT handling to `schema_form.py` for nested `Schema.properties` (FR-004)
+- [X] T019 [US1] Add ARRAY handling to `schema_form.py` with dynamic add/remove for `Schema.items` (FR-004)
+- [X] T020 [US1] Add `Schema.description` display as field hints in `schema_form.py` (FR-005)
+- [X] T021 [US1] Add `Schema.required` validation before form submission in `schema_form.py` (FR-006)
+- [X] T022 [US1] Implement tool executor component with form + execute button in `adk_agent_sim/ui/components/tool_executor.py`
+- [X] T023 [US1] Add execution timer display (stopwatch) to `tool_executor.py` (FR-032)
+- [X] T024 [US1] Add cancel button to `tool_executor.py` that triggers `ToolRunner.cancel()` (FR-033)
+- [X] T025 [US1] Implement action panel component with tool selector dropdown in `adk_agent_sim/ui/components/action_panel.py`
+- [X] T026 [US1] Implement history panel component rendering `HistoryEntry` variants in `adk_agent_sim/ui/components/history_panel.py` (FR-018)
+- [X] T027 [US1] Add distinct visual styles per entry type (user input, tool call, tool output) in `history_panel.py` (FR-019)
+- [X] T028 [US1] Wire `controller.execute_tool()` to add `ToolCall` + `ToolOutput` entries to session history (FR-014)
 
 **Checkpoint**: User Story 1 complete - can execute a single tool and see result in history
 
@@ -94,23 +94,23 @@ tests/                   # Test files
 
 ### Implementation for User Story 2
 
-- [ ] T029 [US2] Implement agent selection page with `ui.select` dropdown in `adk_agent_sim/ui/pages/agent_select.py` (FR-007)
-- [ ] T030 [US2] Implement collapsible system instructions panel in `adk_agent_sim/ui/components/system_prompt.py` using `ui.expansion` (FR-008)
-- [ ] T031 [US2] Implement main simulation page layout in `adk_agent_sim/ui/pages/simulation.py` integrating:
+- [X] T029 [US2] Implement agent selection page with `ui.select` dropdown in `adk_agent_sim/ui/pages/agent_select.py` (FR-007)
+- [X] T030 [US2] Implement collapsible system instructions panel in `adk_agent_sim/ui/components/system_prompt.py` using `ui.expansion` (FR-008)
+- [X] T031 [US2] Implement main simulation page layout in `adk_agent_sim/ui/pages/simulation.py` integrating:
   - System prompt component
   - History panel
   - Action panel
   - Tool executor
-- [ ] T032 [US2] Add initial query input (plain text) to simulation page (FR-009)
-- [ ] T033 [US2] Add "Send Final Response" action to action panel with text input (FR-012)
-- [ ] T034 [US2] Implement NiceGUI app routing in `adk_agent_sim/ui/app.py`:
+- [X] T032 [US2] Add initial query input (plain text) to simulation page (FR-009)
+- [X] T033 [US2] Add "Send Final Response" action to action panel with text input (FR-012)
+- [X] T034 [US2] Implement NiceGUI app routing in `adk_agent_sim/ui/app.py`:
   - `/` → agent selection page
   - `/simulate` → simulation page
-- [ ] T035 [US2] Implement `AgentSimulator` entry point class in `adk_agent_sim/simulator.py` with:
+- [X] T035 [US2] Implement `AgentSimulator` entry point class in `adk_agent_sim/simulator.py` with:
   - Constructor accepting `dict[str, Agent]`
   - `run()` method that starts NiceGUI server
-- [ ] T036 [US2] Export `AgentSimulator` from `adk_agent_sim/__init__.py` as public API
-- [ ] T037 [US2] Wire session state transitions in controller: `SELECTING_AGENT` → `AWAITING_QUERY` → `ACTIVE` → `COMPLETED`
+- [X] T036 [US2] Export `AgentSimulator` from `adk_agent_sim/__init__.py` as public API
+- [X] T037 [US2] Wire session state transitions in controller: `SELECTING_AGENT` → `AWAITING_QUERY` → `ACTIVE` → `COMPLETED`
 
 **Checkpoint**: User Story 2 complete - full simulation workflow from agent selection to final response
 
@@ -124,17 +124,17 @@ tests/                   # Test files
 
 ### Implementation for User Story 3
 
-- [ ] T038 [US3] Implement `GoldenTraceBuilder` class in `adk_agent_sim/export/golden_trace.py` with:
+- [X] T038 [US3] Implement `GoldenTraceBuilder` class in `adk_agent_sim/export/golden_trace.py` with:
   - `build()` method returning `EvalCase`
   - `_generate_eval_id()` using `{snake_case_agent_name}_{iso_timestamp}` format (FR-022)
-- [ ] T039 [US3] Implement `_extract_user_query()` to build `Content(parts=[Part(text=query)])` (FR-024)
-- [ ] T040 [US3] Implement `_extract_final_response()` to build `Content(parts=[Part(text=response)])` (FR-025)
-- [ ] T041 [US3] Implement `_extract_tool_data()` to build `FunctionCall` and `FunctionResponse` lists (FR-026)
-- [ ] T042 [US3] Assemble `Invocation` with `intermediate_data` containing tool_uses and tool_responses (FR-023, FR-026)
-- [ ] T043 [US3] Add `creation_timestamp` to exported `EvalCase` (FR-027)
-- [ ] T044 [US3] Implement `export_json()` method using `model_dump_json()` (FR-020, FR-021)
-- [ ] T045 [US3] Add "Export Golden Trace" button to simulation page (visible when state=COMPLETED)
-- [ ] T046 [US3] Wire export button to trigger JSON download via NiceGUI `ui.download()`
+- [X] T039 [US3] Implement `_extract_user_query()` to build `Content(parts=[Part(text=query)])` (FR-024)
+- [X] T040 [US3] Implement `_extract_final_response()` to build `Content(parts=[Part(text=response)])` (FR-025)
+- [X] T041 [US3] Implement `_extract_tool_data()` to build `FunctionCall` and `FunctionResponse` lists (FR-026)
+- [X] T042 [US3] Assemble `Invocation` with `intermediate_data` containing tool_uses and tool_responses (FR-023, FR-026)
+- [X] T043 [US3] Add `creation_timestamp` to exported `EvalCase` (FR-027)
+- [X] T044 [US3] Implement `export_json()` method using `model_dump_json()` (FR-020, FR-021)
+- [X] T045 [US3] Add "Export Golden Trace" button to simulation page (visible when state=COMPLETED)
+- [X] T046 [US3] Wire export button to trigger JSON download via NiceGUI `ui.download()`
 
 **Checkpoint**: User Story 3 complete - sessions export to valid `EvalCase` JSON
 
@@ -148,12 +148,12 @@ tests/                   # Test files
 
 ### Implementation for User Story 4
 
-- [ ] T047 [US4] Add Pydantic → Schema conversion helper in `adk_agent_sim/ui/components/schema_form.py`:
+- [X] T047 [US4] Add Pydantic → Schema conversion helper in `adk_agent_sim/ui/components/schema_form.py`:
   - `pydantic_to_schema(model: type[BaseModel]) -> Schema` using `Schema.from_json_schema()` (FR-010)
-- [ ] T048 [US4] Update simulation page to render schema form for initial query if `agent.input_schema` exists (FR-010)
-- [ ] T049 [US4] Update action panel to render schema form for final response if `agent.output_schema` exists (FR-015)
-- [ ] T050 [US4] Add Pydantic validation for structured final response before submission (FR-016)
-- [ ] T051 [US4] Store structured input/output as JSON string in `UserQuery.content` and `FinalResponse.content`
+- [X] T048 [US4] Update simulation page to render schema form for initial query if `agent.input_schema` exists (FR-010)
+- [X] T049 [US4] Update action panel to render schema form for final response if `agent.output_schema` exists (FR-015)
+- [X] T050 [US4] Add Pydantic validation for structured final response before submission (FR-016)
+- [X] T051 [US4] Store structured input/output as JSON string in `UserQuery.content` and `FinalResponse.content`
 
 **Checkpoint**: User Story 4 complete - structured schemas render as forms with validation
 
@@ -167,11 +167,11 @@ tests/                   # Test files
 
 ### Implementation for User Story 5
 
-- [ ] T052 [US5] Update `ToolRunner.execute()` to catch exceptions and return `ExecutionResult` with error details (FR-028)
-- [ ] T053 [US5] Update controller to add `ToolError` entry to history on failure (FR-029)
-- [ ] T054 [US5] Add error-styled card variant to `history_panel.py` for `ToolError` entries (FR-019)
-- [ ] T055 [US5] Ensure session remains in `ACTIVE` state after tool error (FR-030)
-- [ ] T056 [US5] Update `GoldenTraceBuilder._extract_tool_data()` to convert `ToolError` to `FunctionResponse` with error payload (FR-031)
+- [X] T052 [US5] Update `ToolRunner.execute()` to catch exceptions and return `ExecutionResult` with error details (FR-028)
+- [X] T053 [US5] Update controller to add `ToolError` entry to history on failure (FR-029)
+- [X] T054 [US5] Add error-styled card variant to `history_panel.py` for `ToolError` entries (FR-019)
+- [X] T055 [US5] Ensure session remains in `ACTIVE` state after tool error (FR-030)
+- [X] T056 [US5] Update `GoldenTraceBuilder._extract_tool_data()` to convert `ToolError` to `FunctionResponse` with error payload (FR-031)
 
 **Checkpoint**: User Story 5 complete - errors display and export correctly
 
@@ -181,17 +181,17 @@ tests/                   # Test files
 
 **Purpose**: Final integration, edge cases, and quality gates
 
-- [ ] T057 [P] Handle empty tool list edge case - allow direct final response submission
-- [ ] T058 [P] Add large tool output truncation in history panel (show preview, full data in export)
-- [ ] T059 [P] Add unit tests for schema form rendering in `tests/unit/test_schema_form.py`
-- [ ] T060 [P] Add unit tests for session state machine in `tests/unit/test_session.py`
-- [ ] T061 [P] Add unit tests for history entry models in `tests/unit/test_history.py`
-- [ ] T062 [P] Add unit tests for Golden Trace export in `tests/unit/test_golden_trace.py`
-- [ ] T063 Add integration test for tool execution in `tests/integration/test_tool_execution.py`
-- [ ] T064 Add integration test for end-to-end simulation flow in `tests/integration/test_simulation_flow.py`
-- [ ] T065 Run `ruff format --check` and `ruff check` on all new files
-- [ ] T066 Run `pyright --strict` on all new files
-- [ ] T067 Manual smoke test: complete full simulation with demo agent and verify export
+- [X] T057 [P] Handle empty tool list edge case - allow direct final response submission
+- [X] T058 [P] Add large tool output truncation in history panel (show preview, full data in export)
+- [X] T059 [P] Add unit tests for schema form rendering in `tests/unit/test_schema_form.py`
+- [X] T060 [P] Add unit tests for session state machine in `tests/unit/test_session.py`
+- [X] T061 [P] Add unit tests for history entry models in `tests/unit/test_history.py`
+- [X] T062 [P] Add unit tests for Golden Trace export in `tests/unit/test_golden_trace.py`
+- [X] T063 Add integration test for tool execution in `tests/integration/test_tool_execution.py`
+- [X] T064 Add integration test for end-to-end simulation flow in `tests/integration/test_simulation_flow.py`
+- [X] T065 Run `ruff format --check` and `ruff check` on all new files
+- [X] T066 Run `pyright --strict` on all new files
+- [X] T067 Manual smoke test: complete full simulation with demo agent and verify export
 
 ---
 
