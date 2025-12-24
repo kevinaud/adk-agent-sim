@@ -4,45 +4,79 @@ from __future__ import annotations
 
 from nicegui import ui
 
+from adk_agent_sim.ui.styles import EXPANDABLE_HEADER_CLASSES
 
-class SystemPromptPanel:
-  """Component for displaying agent system instructions."""
 
-  def __init__(self, instruction: str, agent_name: str) -> None:
+class SystemPromptHeader:
+  """Expandable header component for displaying agent system instructions."""
+
+  def __init__(
+    self,
+    content: str,
+    agent_name: str,
+    expanded: bool = False,
+  ) -> None:
     """
-    Initialize the system prompt panel.
+    Initialize the system prompt header.
 
     Args:
-      instruction: The agent's system instruction text
+      content: The agent's system instruction text
       agent_name: Name of the agent
+      expanded: Initial expansion state (default: collapsed)
     """
-    self.instruction = instruction
+    self.content = content
     self.agent_name = agent_name
+    self.expanded = expanded
 
   def render(self) -> None:
-    """Render the system prompt panel."""
+    """Render the expandable system prompt header."""
     with ui.expansion(
-      f"System Instructions ({self.agent_name})",
+      "System Instructions",
       icon="psychology",
-      value=True,  # Expanded by default
-    ).classes("w-full mb-4"):
-      if self.instruction:
-        ui.markdown(self.instruction).classes("text-sm")
+      value=self.expanded,  # Collapsed by default
+    ).classes(EXPANDABLE_HEADER_CLASSES):
+      # Header info
+      with ui.row().classes("items-center gap-2 mb-2"):
+        ui.badge(self.agent_name, color="blue")
+        ui.label("•").classes("text-gray-400")
+        word_count = len(self.content.split()) if self.content else 0
+        ui.label(f"{word_count} words").classes("text-xs text-gray-500")
+
+      # Content
+      if self.content:
+        with ui.scroll_area().classes("max-h-64"):
+          ui.markdown(self.content).classes("text-sm")
       else:
-        ui.label("No system instructions defined").classes("text-gray-500 italic")
+        ui.label("No system instructions defined").classes(
+          "text-gray-500 italic text-sm"
+        )
 
 
-def render_system_prompt(instruction: str, agent_name: str) -> SystemPromptPanel:
+# Keep the old class for backwards compatibility
+class SystemPromptPanel(SystemPromptHeader):
+  """Legacy alias for SystemPromptHeader."""
+
+  def __init__(self, instruction: str, agent_name: str) -> None:
+    """Initialize with legacy signature (expanded by default for compatibility)."""
+    super().__init__(content=instruction, agent_name=agent_name, expanded=True)
+
+
+def render_system_prompt(
+  instruction: str,
+  agent_name: str,
+  expanded: bool = False,
+) -> SystemPromptHeader:
   """
-  Render a system prompt panel.
+  Render a system prompt header.
 
   Args:
     instruction: System instruction text
     agent_name: Agent name
+    expanded: Initial expansion state (default: collapsed)
 
   Returns:
-    SystemPromptPanel instance
+    SystemPromptHeader instance
   """
-  panel = SystemPromptPanel(instruction, agent_name)
-  panel.render()
-  return panel
+  header = SystemPromptHeader(instruction, agent_name, expanded)
+  header.render()
+  return header

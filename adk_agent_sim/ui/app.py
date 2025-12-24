@@ -36,9 +36,34 @@ class SimulatorApp:
       async def on_select(agent_name: str) -> None:
         # Create session and select agent
         self.controller.create_session()
-        await self.controller.select_agent(agent_name)
-        # Navigate to simulation page
-        ui.navigate.to("/simulate")
+        try:
+          await self.controller.select_agent(agent_name)
+          # Navigate to simulation page
+          ui.navigate.to("/simulate")
+        except (ConnectionError, BaseExceptionGroup) as e:
+          # Show user-friendly error for connection failures
+          # BaseExceptionGroup can come from anyio/asyncio MCP client
+          error_msg = str(e)
+          if isinstance(e, BaseExceptionGroup):
+            # Extract first meaningful error
+            msgs = [str(exc) for exc in e.exceptions[:2]]
+            error_msg = "; ".join(msgs)
+          ui.notify(
+            f"Failed to connect: {error_msg}",
+            type="negative",
+            position="top",
+            close_button=True,
+            timeout=0,  # Don't auto-close
+          )
+        except Exception as e:
+          # Show generic error for other failures
+          ui.notify(
+            f"Failed to start simulation: {e}",
+            type="negative",
+            position="top",
+            close_button=True,
+            timeout=0,
+          )
 
       render_agent_select_page(agent_names, on_select)  # type: ignore
 
