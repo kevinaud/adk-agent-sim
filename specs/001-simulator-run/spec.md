@@ -14,6 +14,11 @@
 - Q: How should the Agent's **System Instructions** (persona/prompt) be presented to the human wizard? → A: **Prominent but Collapsible** - Visible by default to guide roleplay, but can be collapsed to save space.
 - Q: How should the simulator handle **tool timeouts**? → A: **Manual Abort** - No enforced timeout; show elapsed time and provide a "Cancel" button for the user.
 
+### Session 2025-12-24
+- Q: How should agents be configured for the simulator? → A: **SimulatedAgentConfig** - Agents are provided as a list of `SimulatedAgentConfig` objects containing `name`, `agent`, and `eval_set_path` (the file path where completed eval cases should be appended).
+- Q: Should we export individual EvalCase JSON files or use EvalSet files? → A: **EvalSet files** - The ADK `adk eval` CLI requires EvalSet files (which contain a list of EvalCases). Export should append to an existing EvalSet file or create a new one if it doesn't exist.
+- Q: How should the `eval_set_path` be interpreted (absolute vs relative)? → A: **Relative to working directory** - If a relative path is provided, it is resolved relative to the current working directory where the simulator is launched. Absolute paths are used as-is.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Execute a Simple Tool Call (Priority: P1)
@@ -53,17 +58,17 @@ A developer wants to roleplay as an agent solving a user query that requires mul
 
 ---
 
-### User Story 3 - Export Golden Trace (Priority: P1)
+### User Story 3 - Export Golden Trace to EvalSet (Priority: P1)
 
-A developer has completed a simulation session and wants to export it as a Golden Trace JSON file for use with ADK evaluation tools.
+A developer has completed a simulation session and wants to export it as a Golden Trace to an EvalSet file for use with ADK's `adk eval` CLI tool.
 
-**Why this priority**: The Golden Trace is the primary output artifact of the tool. Without export, the entire workflow produces nothing persistent.
+**Why this priority**: The Golden Trace is the primary output artifact of the tool. The EvalSet format is required by the ADK CLI, so exporting directly to this format eliminates manual file manipulation.
 
-**Independent Test**: Can be fully tested by completing a minimal session (1 query, 1 tool call, 1 final response), exporting, and validating the JSON structure matches ADK `EvalCase` schema.
+**Independent Test**: Can be fully tested by completing a minimal session (1 query, 1 tool call, 1 final response), exporting, and validating the EvalSet file is created/updated correctly.
 
 **Acceptance Scenarios**:
 
-1. **Given** a completed session with query "What is 2+2?", tool call `add(a=2, b=2)` returning `4`, and final response "The answer is 4", **When** the user exports, **Then** a JSON file is generated containing:
+1. **Given** a completed session with query "What is 2+2?", tool call `add(a=2, b=2)` returning `4`, and final response "The answer is 4", **When** the user clicks "Export", **Then** the EvalCase is appended to the EvalSet file specified in the agent's `eval_set_path` configuration, containing:
    - `eval_id`: A unique identifier
    - `conversation`: A list with one `Invocation` object
    - `Invocation.user_content`: Contains "What is 2+2?"
@@ -71,7 +76,11 @@ A developer has completed a simulation session and wants to export it as a Golde
    - `Invocation.intermediate_data.tool_uses`: Contains the `FunctionCall` for `add`
    - `Invocation.intermediate_data.tool_responses`: Contains the `FunctionResponse` with result `4`
 
-2. **Given** a completed session, **When** the exported JSON is loaded into ADK's evaluation framework, **Then** it parses without errors as a valid `EvalCase`.
+2. **Given** the `eval_set_path` file does not exist, **When** the user exports, **Then** a new EvalSet file is created with the eval case as the first entry, and appropriate metadata (`eval_set_id`, `creation_timestamp`).
+
+3. **Given** the `eval_set_path` file already exists with previous eval cases, **When** the user exports, **Then** the new eval case is appended to the existing `eval_cases` list without overwriting previous entries.
+
+4. **Given** a completed session, **When** the EvalSet file is used with `adk eval agent_module eval_set.json`, **Then** the evaluation runs successfully without parsing errors.
 
 ---
 
@@ -138,9 +147,15 @@ A developer executes a tool that throws an exception (e.g., network error, inval
 - **FR-005**: System MUST display `Schema.description` for each field to guide user input.
 - **FR-006**: System MUST enforce `Schema.required` field constraints before allowing execution.
 
-#### Simulation Workflow
+#### Agent Configuration
 
-- **FR-007**: System MUST allow user to select a single Agent to simulate if multiple are provided in the `AgentSimulator` constructor. This selection happens once at startup.
+- **FR-007**: System MUST accept agents as a list of `SimulatedAgentConfig` objects, each containing:
+  - `name`: Display name for the agent
+  - `agent`: The ADK Agent instance
+  - `eval_set_path`: File path (absolute or relative to CWD) where completed eval cases should be exported
+- **FR-007a**: System MUST allow user to select a single Agent to simulate if multiple are provided. This selection happens once at startup.
+
+#### Simulation Workflow
 - **FR-008**: System MUST display the Agent's system instructions (retrieved via `agent.canonical_instruction()`) prominently in the UI. This section MUST be collapsible.
 - **FR-009**: System MUST allow user to provide an initial "User Query" to start a session.
 - **FR-010**: System MUST render a structured input form if the Agent defines an `input_schema` (Pydantic model). The Pydantic model MUST be converted to `google.genai.types.Schema` via `Schema.from_json_schema(JSONSchema.model_validate(Model.model_json_schema()))` and rendered using the same `Schema → Form` logic as tool parameters (FR-004).
@@ -157,18 +172,28 @@ A developer executes a tool that throws an exception (e.g., network error, inval
 - **FR-018**: History MUST display: user query, each tool invocation (name + inputs), each tool output, and final response.
 - **FR-019**: History entries MUST be visually distinguishable by type (user input, tool call, tool output, final response, error).
 
-#### Golden Trace Export
+#### Golden Trace Export (EvalSet Format)
 
-- **FR-020**: System MUST generate a JSON export upon session completion.
-- **FR-021**: Exported JSON MUST conform to ADK `EvalCase` Pydantic model structure.
-- **FR-022**: Export MUST include `eval_id` generated as `{snake_case_agent_name}_{iso_timestamp}` (e.g., `my_agent_2025-12-23T10:00:00`).
-- **FR-023**: Export MUST include `conversation` as a list of `Invocation` objects.
-- **FR-024**: Each `Invocation.user_content` MUST contain the user query as `genai_types.Content`.
-- **FR-025**: Each `Invocation.final_response` MUST contain the human's final answer as `genai_types.Content`.
-- **FR-026**: Each `Invocation.intermediate_data` MUST be an `IntermediateData` object containing:
+- **FR-020**: System MUST provide an "Export" button (not download) upon session completion.
+- **FR-021**: Export MUST write to the `eval_set_path` specified in the agent's `SimulatedAgentConfig`.
+- **FR-022**: If the target EvalSet file does not exist, system MUST create a new file with:
+  - `eval_set_id`: Generated from agent name (e.g., `math_agent_evals`)
+  - `name`: Optional descriptive name (can be agent name)
+  - `eval_cases`: List containing the new EvalCase
+  - `creation_timestamp`: Current Unix timestamp
+- **FR-023**: If the target EvalSet file exists, system MUST:
+  - Load the existing EvalSet
+  - Append the new EvalCase to the `eval_cases` list
+  - Write the updated EvalSet back to the file
+- **FR-024**: Each EvalCase MUST conform to ADK `EvalCase` Pydantic model structure.
+- **FR-025**: Each EvalCase MUST include `eval_id` generated as `{snake_case_agent_name}_{iso_timestamp}` (e.g., `my_agent_2025-12-23T10:00:00`).
+- **FR-026**: Each EvalCase MUST include `conversation` as a list of `Invocation` objects.
+- **FR-027**: Each `Invocation.user_content` MUST contain the user query as `genai_types.Content`.
+- **FR-028**: Each `Invocation.final_response` MUST contain the human's final answer as `genai_types.Content`.
+- **FR-029**: Each `Invocation.intermediate_data` MUST be an `IntermediateData` object containing:
   - `tool_uses`: Chronological list of `genai_types.FunctionCall`
   - `tool_responses`: Chronological list of `genai_types.FunctionResponse`
-- **FR-027**: Export MUST include `creation_timestamp` for the session.
+- **FR-030**: Export MUST include `creation_timestamp` for the EvalCase.
 
 #### Error Handling
 
@@ -186,19 +211,21 @@ A developer executes a tool that throws an exception (e.g., network error, inval
 
 ### Key Entities
 
+- **SimulatedAgentConfig**: Configuration for an agent in the simulator. Contains `name` (display name), `agent` (ADK Agent instance), and `eval_set_path` (file path for EvalSet export).
 - **SimulationSession**: Represents a single simulation run. Contains the agent reference, conversation history, and state (active/completed).
 - **HistoryEntry**: A single event in the session timeline. Discriminated union of: UserQuery, ToolCall, ToolOutput, ToolError, FinalResponse.
 - **ToolCall**: Records a tool invocation. Contains tool name, input arguments, timestamp.
 - **ToolOutput**: Records a tool's return value. Contains result data, timestamp, duration.
 - **ToolError**: Records a failed tool execution. Contains exception type, message, and optional traceback (see data-model.md).
 - **GoldenTrace**: The exportable `EvalCase`-compatible JSON structure (built by `GoldenTraceBuilder`).
+- **EvalSet**: ADK model containing a list of EvalCases. This is the file format required by `adk eval` CLI.
 
 ## Success Criteria *(mandatory)*
 
 ### Measurable Outcomes
 
 - **SC-001**: A developer can complete a simulation session (query → tool calls → final response) in under 5 minutes for a typical 3-tool workflow.
-- **SC-002**: Exported Golden Traces parse successfully as valid `EvalCase` objects using ADK's Pydantic model 100% of the time.
+- **SC-002**: Exported EvalSet files parse successfully using ADK's `EvalSet` Pydantic model and work with `adk eval` CLI 100% of the time.
 - **SC-003**: All `google.genai.types.Type` values supported by `Schema` (STRING, INTEGER, NUMBER, BOOLEAN, OBJECT, ARRAY) plus enum detection render correctly in the UI.
 - **SC-004**: Tool execution errors are captured and displayed with sufficient detail to diagnose the issue (exception type + message at minimum).
 - **SC-005**: Session history correctly reflects all operations in chronological order with no missing or duplicate entries.

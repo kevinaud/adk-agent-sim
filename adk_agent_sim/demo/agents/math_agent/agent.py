@@ -23,10 +23,10 @@ def get_demo_mcp_server_toolset() -> McpToolset:
   )
 
 
-def get_demo_agent() -> Agent:
+def get_math_agent() -> Agent:
   return Agent(
     model="gemini-2.5-flash",
-    name="calculator_agent",
+    name="math_agent",
     description="A helpful assistant for performing mathematical calculations.",
     instruction=textwrap.dedent("""
     You are an expert mathematician.
@@ -38,4 +38,4 @@ def get_demo_agent() -> Agent:
   )
 
 
-root_agent = get_demo_agent()
+root_agent = get_math_agent()

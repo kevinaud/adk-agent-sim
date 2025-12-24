@@ -14,17 +14,17 @@ class AgentSelectPage:
 
   def __init__(
     self,
-    agent_names: list[str],
+    agents: list[dict[str, str | None]],
     on_select: Callable[[str], Awaitable[None]],
   ) -> None:
     """
     Initialize the agent selection page.
 
     Args:
-      agent_names: List of available agent names
+      agents: List of agent info dicts with 'name' and 'description'
       on_select: Async callback when an agent is selected
     """
-    self.agent_names = agent_names
+    self.agents = agents
     self.on_select = on_select
 
   def render(self) -> None:
@@ -57,7 +57,7 @@ class AgentSelectPage:
   def _render_card_grid(self) -> None:
     """Render the agent cards in a responsive grid."""
     with ui.column().classes("w-full items-center py-8 px-4 flex-grow"):
-      if not self.agent_names:
+      if not self.agents:
         # Empty state
         with ui.card().classes("p-8 text-center"):
           ui.icon("warning", size="xl").classes("text-yellow-500 mb-4")
@@ -69,18 +69,17 @@ class AgentSelectPage:
 
       # Card grid container
       with ui.row().classes("flex-wrap gap-6 justify-center"):
-        for agent_name in self.agent_names:
-          self._render_agent_card(agent_name)
+        for agent_info in self.agents:
+          self._render_agent_card(agent_info)
 
-  def _render_agent_card(self, agent_name: str) -> None:
+  def _render_agent_card(self, agent_info: dict[str, str | None]) -> None:
     """Render a single agent card."""
+    agent_name = str(agent_info.get("name", "Unknown"))
+    description = agent_info.get("description")
 
     # Create closure for click handler
     async def on_card_click() -> None:
       await self.on_select(agent_name)
-
-    # Get description if available (could be extended to fetch from agent)
-    description = self._get_agent_description(agent_name)
 
     card = AgentCard(
       name=agent_name,
@@ -89,51 +88,29 @@ class AgentSelectPage:
     )
     card.render()
 
-  def _get_agent_description(self, agent_name: str) -> str | None:
-    """
-    Get the description for an agent.
-
-    This is a placeholder that returns a generic description.
-    Could be extended to fetch real descriptions from agent metadata.
-
-    Args:
-      agent_name: The agent name
-
-    Returns:
-      Agent description or None
-    """
-    # Placeholder descriptions - in real implementation, these would
-    # come from agent metadata or configuration
-    descriptions = {
-      "demo_agent": "A demonstration agent showcasing basic capabilities",
-      "test_agent": "Agent used for testing and validation",
-      "mcp_agent": "Agent with MCP server integration support",
-    }
-    return descriptions.get(agent_name)
-
   def _render_footer(self) -> None:
     """Render the page footer with agent count info."""
     with ui.column().classes("w-full items-center py-6 bg-white border-t"):
-      count = len(self.agent_names)
+      count = len(self.agents)
       ui.label(f"{count} agent{'s' if count != 1 else ''} available").classes(
         "text-sm text-gray-500"
       )
 
 
 def render_agent_select_page(
-  agent_names: list[str],
+  agents: list[dict[str, str | None]],
   on_select: Callable[[str], Awaitable[None]],
 ) -> AgentSelectPage:
   """
   Render the agent selection page.
 
   Args:
-    agent_names: List of available agent names
+    agents: List of agent info dicts with 'name' and 'description'
     on_select: Async selection callback
 
   Returns:
     AgentSelectPage instance
   """
-  page = AgentSelectPage(agent_names, on_select)
+  page = AgentSelectPage(agents, on_select)
   page.render()
   return page

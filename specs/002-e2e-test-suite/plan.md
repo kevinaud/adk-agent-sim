@@ -8,7 +8,9 @@
 Implement an E2E test suite using Playwright via pytest to validate the "Simulator Run" feature. The test suite will:
 - Launch the NiceGUI application in a background thread with server-mode configuration
 - Use a dedicated `test_agent` with local `FunctionTool` definitions covering all required schema types
-- Verify complete simulation flows, dynamic form rendering, error handling, and state isolation
+- Verify complete simulation flows including EvalSet export
+- Test dynamic form rendering, error handling, and state isolation
+- Validate new UX features: event stream expand/collapse, tool catalog display, agent descriptions
 - Capture screenshots of all major UX views for visual documentation and AI-assisted analysis
 - Run headlessly within the Dev Container environment with zero manual intervention
 
@@ -22,8 +24,8 @@ Implement an E2E test suite using Playwright via pytest to validate the "Simulat
 **Project Type**: single (Python library with test suite)  
 **Performance Goals**: Full test suite completes within 5 minutes  
 **Constraints**: Must run headlessly, no desktop window spawning, single-threaded to avoid port conflicts  
-**Scale/Scope**: 5 test cases (TC-01 through TC-05) covering P1-P3 user stories plus screenshot capture
-**Screenshot Output**: `docs/screenshots/` directory with 7 PNG files at 1280x720 resolution
+**Scale/Scope**: 7 test cases (TC-01 through TC-07) covering P1-P3 user stories plus screenshot capture
+**Screenshot Output**: `docs/screenshots/` directory with 7+ PNG files at 1280x720 resolution
 
 ## Constitution Check
 
@@ -120,13 +122,14 @@ def capture_screenshot(page: Page) -> Callable[[str], None]:
 
 | View | Filename | Captured During | Description |
 |------|----------|-----------------|-------------|
-| Agent Selection | `agent-selection.png` | TC-01 Step 1 | Initial page showing agent dropdown and start button |
+| Agent Selection | `agent-selection.png` | TC-01 Step 1 | Initial page showing agent cards with descriptions |
 | Query Input | `query-input.png` | TC-01 Step 2 | Simulation page with query input form |
-| Tool Selection | `tool-selection.png` | TC-01 Step 3 | Action panel showing available tools |
+| Tool Catalog | `tool-selection.png` | TC-01 Step 3 | Tool catalog showing all tools with metadata |
 | Tool Form | `tool-form.png` | TC-01 Step 4 | Dynamic form for selected tool parameters |
-| Tool Result | `tool-result.png` | TC-01 Step 5 | History panel showing tool execution result |
+| Tool Result (Expanded) | `tool-result.png` | TC-01 Step 5 | History panel showing tool execution result with sections expanded |
 | Error Display | `error-display.png` | TC-03 | Error card styling for failed tool execution |
-| Session Complete | `session-complete.png` | TC-01 Step 6 | Final response and completed session state |
+| Session Complete | `session-complete.png` | TC-01 Step 6 | Final response and Export button |
+| JSON Auto-Parse | `json-auto-parse.png` | TC-05 | Tool output with embedded JSON rendered as tree |
 
 ### Viewport Configuration
 

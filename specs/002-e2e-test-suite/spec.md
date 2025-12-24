@@ -16,6 +16,11 @@
 - Q: Where should the `test_agent` be located? → A: `tests/fixtures/agents/` (Separation of concerns, keeps source clean).
 - Q: How should the test suite launch the application server? → A: Use a background thread with daemon=True (simpler than subprocess, avoids pickling issues with ADK agents, auto-terminates on pytest exit).
 
+### Session 2025-12-24
+- Q: How should the E2E tests verify EvalSet export functionality? → A: Tests should configure a temporary `eval_set_path`, trigger export via the UI, then verify the file is created/updated with valid EvalSet JSON.
+- Q: Should E2E tests verify the new expand/collapse UX behaviors? → A: Yes, add tests to verify: (1) sections are expanded by default, (2) expand/collapse state persists, (3) expand all/collapse all buttons work.
+- Q: Should E2E tests verify tool catalog display? → A: Yes, verify the tool selection phase shows all tool metadata (name, description, schemas) not just a dropdown.
+
 ### User Story 1 - Execute Complete Simulation Flow (Priority: P1)
 
 As a QA engineer or developer, I need to verify that the complete "Simulator Run" workflow functions correctly from start to finish when interacting with the running application in a browser.
@@ -35,6 +40,10 @@ As a QA engineer or developer, I need to verify that the complete "Simulator Run
 4. **Given** a tool form is displayed, **When** a user fills in the form and executes, **Then** the tool result appears in the history panel.
 
 5. **Given** tool execution has completed, **When** a user submits a final response, **Then** the session completes successfully and history reflects the full conversation.
+
+6. **Given** a completed session, **When** the user clicks "Export", **Then** the EvalCase is appended to the configured EvalSet file.
+
+7. **Given** an export has occurred, **When** the EvalSet file is inspected, **Then** it contains valid JSON conforming to the ADK `EvalSet` schema.
 
 ---
 
@@ -94,7 +103,63 @@ As a QA engineer, I need to verify that sessions are ephemeral and state is prop
 
 ---
 
-### User Story 5 - Capture UX Screenshots for Visual Analysis (Priority: P2)
+### User Story 5 - Verify Event Stream UX Behaviors (Priority: P2)
+
+As a QA engineer, I need to verify that the event stream UX improvements work correctly: sections expand by default, state persists across actions, and bulk expand/collapse buttons function properly.
+
+**Why this priority**: These UX improvements significantly impact usability. Broken state persistence or default states would frustrate users.
+
+**Independent Test**: Can be tested by executing tools, manipulating expand/collapse states, and verifying persistence.
+
+**Acceptance Scenarios**:
+
+1. **Given** a tool execution result appears, **When** the event block renders, **Then** all collapsible sections (arguments, results) are expanded by default.
+
+2. **Given** a user collapses a section in an event, **When** they execute another tool, **Then** the previously collapsed section remains collapsed.
+
+3. **Given** an event block with expanded sections, **When** the user clicks "Collapse All", **Then** all sections within that event collapse.
+
+4. **Given** an event block with collapsed sections, **When** the user clicks "Expand All", **Then** all sections within that event expand.
+
+5. **Given** a tool output contains a string field with embedded JSON, **When** the result displays, **Then** the embedded JSON is rendered as a formatted tree (not raw escaped text).
+
+---
+
+### User Story 6 - Verify Tool Catalog Display (Priority: P2)
+
+As a QA engineer, I need to verify that the tool selection phase displays a catalog view with full tool metadata instead of a simple dropdown.
+
+**Why this priority**: The tool catalog is a key UX improvement that helps users make informed tool selections.
+
+**Independent Test**: Can be tested by entering the tool selection phase and verifying all required metadata is visible.
+
+**Acceptance Scenarios**:
+
+1. **Given** the tool selection phase, **When** viewing available tools, **Then** all tools are displayed simultaneously (not in a dropdown).
+
+2. **Given** the tool catalog, **When** viewing a tool entry, **Then** the tool name and description are visible.
+
+3. **Given** the tool catalog, **When** expanding a tool's schema panels, **Then** input and output schemas are displayed.
+
+---
+
+### User Story 7 - Verify Agent Description Display (Priority: P2)
+
+As a QA engineer, I need to verify that agent descriptions are correctly displayed on the agent selection screen.
+
+**Why this priority**: This is a bug fix validation - agents with descriptions should show their actual description, not fallback text.
+
+**Independent Test**: Can be tested by configuring a test agent with a known description and verifying it displays correctly.
+
+**Acceptance Scenarios**:
+
+1. **Given** a test agent with a description defined, **When** the agent selection page loads, **Then** the agent card displays the actual description text.
+
+2. **Given** a test agent without a description, **When** the agent selection page loads, **Then** the agent card displays "No description available".
+
+---
+
+### User Story 8 - Capture UX Screenshots for Visual Analysis (Priority: P2)
 
 As a developer or designer, I need the E2E test suite to capture screenshots of all major UX views and store them in the repository so that I can analyze visual quality, track UI changes over time, and enable AI assistants to provide feedback on the user interface.
 
@@ -144,10 +209,13 @@ As a developer or designer, I need the E2E test suite to capture screenshots of 
 - **FR-003**: Test suite MUST automatically start the NiceGUI server before tests run.
 - **FR-004**: Test suite MUST automatically stop the NiceGUI server after all tests complete.
 - **FR-005**: Tests MUST interact with the application as a black-box (no internal method calls or direct database access).
-- **FR-006**: Test suite MUST include TC-01 (Happy Path) covering the complete simulation flow.
+- **FR-006**: Test suite MUST include TC-01 (Happy Path) covering the complete simulation flow including EvalSet export.
 - **FR-007**: Test suite MUST include TC-02 (Dynamic Forms) verifying widget rendering for schema types (boolean→checkbox, enum→dropdown).
 - **FR-008**: Test suite MUST include TC-03 (Error Handling) verifying error display and session continuity.
 - **FR-009**: Test suite MUST include TC-04 (State Isolation) verifying ephemeral session behavior.
+- **FR-009a**: Test suite MUST include TC-05 (Event Stream UX) verifying expand-by-default, state persistence, and bulk expand/collapse.
+- **FR-009b**: Test suite MUST include TC-06 (Tool Catalog) verifying tool selection displays full metadata.
+- **FR-009c**: Test suite MUST include TC-07 (Agent Descriptions) verifying correct description display on agent cards.
 - **FR-010**: Tests MUST be fully automated with no manual intervention required.
 - **FR-011**: Test suite MUST provide clear pass/fail reporting for each test case.
 - **FR-012**: Tests MUST wait for UI elements appropriately to handle asynchronous rendering.
@@ -174,15 +242,16 @@ As a developer or designer, I need the E2E test suite to capture screenshots of 
 
 ### Measurable Outcomes
 
-- **SC-001**: All 4 test cases (TC-01 through TC-04) pass consistently within the Dev Container environment.
+- **SC-001**: All test cases (TC-01 through TC-07) pass consistently within the Dev Container environment.
 - **SC-002**: Test suite completes execution within 5 minutes for the full suite.
 - **SC-003**: Test suite requires zero manual clicks or interventions to run.
 - **SC-004**: Test suite can be executed via a single command (e.g., \`pytest tests/e2e/\`).
 - **SC-005**: Test failures produce actionable error messages identifying the failed assertion and relevant context.
 - **SC-006**: Test suite achieves 100% pass rate on repeated runs (no flaky tests).
-- **SC-007**: Screenshots of all 7 major UX views are captured and saved to `docs/screenshots/`.
+- **SC-007**: Screenshots of all major UX views are captured and saved to `docs/screenshots/`.
 - **SC-008**: Screenshots are readable and clearly show the UI state being documented.
 - **SC-009**: Screenshots enable AI assistants to analyze and provide feedback on visual UX quality.
+- **SC-010**: EvalSet export test verifies file creation/update with valid ADK-compatible JSON.
 
 ## Assumptions
 

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from nicegui import ui
 
@@ -12,12 +12,17 @@ from adk_agent_sim.ui.styles import (
   JSON_TREE_VALUE_STYLE,
 )
 
+if TYPE_CHECKING:
+  from adk_agent_sim.ui.components.text_presenter import PresentationModeManager
+
 
 class JsonTree:
   """Component for displaying JSON data as an interactive, collapsible tree."""
 
   MAX_STRING_LENGTH = 100
   DEFAULT_MAX_DEPTH = 2
+  # Threshold for showing text presenter toggle (for longer strings)
+  TEXT_PRESENTER_THRESHOLD = 50
 
   def __init__(
     self,
@@ -25,6 +30,8 @@ class JsonTree:
     label: str = "root",
     expanded: bool = True,
     max_depth: int = DEFAULT_MAX_DEPTH,
+    tree_id: str | None = None,
+    mode_manager: PresentationModeManager | None = None,
   ) -> None:
     """
     Initialize the JSON tree.
@@ -34,11 +41,21 @@ class JsonTree:
       label: Root label for the tree
       expanded: Initial expansion state
       max_depth: Maximum depth to auto-expand (default: 2)
+      tree_id: Unique ID for tracking presentation modes within this tree
+      mode_manager: Optional mode manager for text presentation toggles
     """
     self.data = data
     self.label = label
     self.expanded = expanded
     self.max_depth = max_depth
+    self.tree_id = tree_id or "tree"
+    self.mode_manager = mode_manager
+    self._element_counter = 0
+
+  def _get_element_id(self, label: str) -> str:
+    """Generate a unique element ID for text presenter tracking."""
+    self._element_counter += 1
+    return f"{self.tree_id}_{label}_{self._element_counter}"
 
   def render(self) -> None:
     """Render the JSON tree component."""
@@ -98,13 +115,31 @@ class JsonTree:
         self._render_node(item, f"[{i}]", depth + 1)
 
   def _render_primitive(self, data: Any, label: str) -> None:
-    """Render a primitive value (string, number, boolean, null)."""
-    with ui.row().classes("items-center gap-1 py-1"):
-      ui.label(f"{label}:").style(JSON_TREE_KEY_STYLE).classes("text-sm")
-      value_str, color = self._format_primitive(data)
-      ui.label(value_str).style(f"{JSON_TREE_VALUE_STYLE} color: {color};").classes(
-        "text-sm"
-      )
+    """Render a primitive value (string, number, boolean, null).
+
+    For strings longer than TEXT_PRESENTER_THRESHOLD, render with
+    presentation toggle (Raw/JSON/Markdown).
+    """
+    # Use text presenter for longer strings
+    if isinstance(data, str) and len(data) > self.TEXT_PRESENTER_THRESHOLD:
+      self._render_string_with_presenter(data, label)
+    else:
+      with ui.row().classes("items-center gap-1 py-1"):
+        ui.label(f"{label}:").style(JSON_TREE_KEY_STYLE).classes("text-sm")
+        value_str, color = self._format_primitive(data)
+        ui.label(value_str).style(f"{JSON_TREE_VALUE_STYLE} color: {color};").classes(
+          "text-sm"
+        )
+
+  def _render_string_with_presenter(self, data: str, label: str) -> None:
+    """Render a string value with presentation toggle."""
+    # Import here to avoid circular import
+    from adk_agent_sim.ui.components.text_presenter import render_text_presenter
+
+    with ui.column().classes("w-full py-1"):
+      ui.label(f"{label}:").style(JSON_TREE_KEY_STYLE).classes("text-sm mb-1")
+      element_id = self._get_element_id(label)
+      render_text_presenter(data, element_id, mode_manager=self.mode_manager)
 
   def _format_primitive(self, data: Any) -> tuple[str, str]:
     """Format a primitive value and return (formatted_string, color)."""
@@ -134,6 +169,8 @@ class TruncatedJsonTree(JsonTree):
     expanded: bool = True,
     max_depth: int = JsonTree.DEFAULT_MAX_DEPTH,
     show_more_threshold: int = 100,
+    tree_id: str | None = None,
+    mode_manager: PresentationModeManager | None = None,
   ) -> None:
     """
     Initialize with truncation support.
@@ -144,56 +181,19 @@ class TruncatedJsonTree(JsonTree):
       expanded: Initial expansion state
       max_depth: Maximum depth to auto-expand
       show_more_threshold: Character threshold for "Show More" button
+      tree_id: Unique ID for tracking presentation modes within this tree
+      mode_manager: Optional mode manager for text presentation toggles
     """
-    super().__init__(data, label, expanded, max_depth)
+    super().__init__(data, label, expanded, max_depth, tree_id, mode_manager)
     self.show_more_threshold = show_more_threshold
 
   def _render_primitive(self, data: Any, label: str) -> None:
-    """Render primitive with 'Show More' for long strings."""
+    """Render primitive with text presenter for longer strings."""
+    # Use text presenter for strings over threshold (replaces Show More)
     if isinstance(data, str) and len(data) > self.show_more_threshold:
-      self._render_truncated_string(data, label)
+      self._render_string_with_presenter(data, label)
     else:
       super()._render_primitive(data, label)
-
-  def _render_truncated_string(self, data: str, label: str) -> None:
-    """Render a truncated string with Show More button."""
-    truncated = data[: self.show_more_threshold]
-    color = JSON_TREE_PRIMITIVE_COLORS["string"]
-    is_expanded = {"value": False}
-
-    with ui.column().classes("w-full gap-1"):
-      with ui.row().classes("items-center gap-1"):
-        ui.label(f"{label}:").style(JSON_TREE_KEY_STYLE).classes("text-sm")
-
-      container = ui.column().classes("w-full pl-4")
-      with container:
-
-        @ui.refreshable
-        def render_content() -> None:
-          if is_expanded["value"]:
-            ui.label(f'"{data}"').style(
-              f"{JSON_TREE_VALUE_STYLE} color: {color}; white-space: pre-wrap;"
-            ).classes("text-sm break-words")
-            ui.button(
-              "Show Less",
-              icon="expand_less",
-              on_click=lambda: toggle_expand(),
-            ).props("flat dense size=xs").classes("text-blue-600")
-          else:
-            ui.label(f'"{truncated}..."').style(
-              f"{JSON_TREE_VALUE_STYLE} color: {color};"
-            ).classes("text-sm")
-            ui.button(
-              "Show More",
-              icon="expand_more",
-              on_click=lambda: toggle_expand(),
-            ).props("flat dense size=xs").classes("text-blue-600")
-
-        def toggle_expand() -> None:
-          is_expanded["value"] = not is_expanded["value"]
-          render_content.refresh()
-
-        render_content()
 
 
 def render_json_tree(
@@ -202,6 +202,8 @@ def render_json_tree(
   expanded: bool = True,
   max_depth: int = 2,
   truncate: bool = False,
+  tree_id: str | None = None,
+  mode_manager: PresentationModeManager | None = None,
 ) -> JsonTree | TruncatedJsonTree:
   """
   Render a JSON tree component.
@@ -211,14 +213,20 @@ def render_json_tree(
     label: Root label for the tree
     expanded: Initial expansion state
     max_depth: Maximum depth to auto-expand
-    truncate: Whether to enable truncation with "Show More" for long strings
+    truncate: Whether to enable text presenter for long strings
+    tree_id: Unique ID for tracking presentation modes
+    mode_manager: Optional mode manager for text presentation toggles
 
   Returns:
     The JsonTree instance
   """
   if truncate:
-    tree = TruncatedJsonTree(data, label, expanded, max_depth)
+    tree = TruncatedJsonTree(
+      data, label, expanded, max_depth, tree_id=tree_id, mode_manager=mode_manager
+    )
   else:
-    tree = JsonTree(data, label, expanded, max_depth)
+    tree = JsonTree(
+      data, label, expanded, max_depth, tree_id=tree_id, mode_manager=mode_manager
+    )
   tree.render()
   return tree

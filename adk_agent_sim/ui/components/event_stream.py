@@ -9,6 +9,48 @@ from adk_agent_sim.ui.components.event_block import LoadingBlock, render_event_b
 from adk_agent_sim.ui.styles import LAYOUT
 
 
+class ExpandCollapseStateManager:
+  """Manages expand/collapse state for all event blocks (session-only, in-memory).
+
+  State is NOT persisted across page refreshes - resets to default (expanded=True).
+  """
+
+  def __init__(self) -> None:
+    """Initialize the state manager with empty state."""
+    # event_id -> section_name -> expanded (bool)
+    self._states: dict[str, dict[str, bool]] = {}
+
+  def get_expanded(self, event_id: str, section: str, default: bool = True) -> bool:
+    """Get expansion state. Default is expanded=True."""
+    return self._states.get(event_id, {}).get(section, default)
+
+  def set_expanded(self, event_id: str, section: str, expanded: bool) -> None:
+    """Set expansion state for a section."""
+    if event_id not in self._states:
+      self._states[event_id] = {}
+    self._states[event_id][section] = expanded
+
+  def get_all_sections(self, event_id: str) -> list[str]:
+    """Get all section names for an event."""
+    return list(self._states.get(event_id, {}).keys())
+
+  def expand_all(self, event_id: str) -> None:
+    """Expand all sections for an event."""
+    if event_id in self._states:
+      for section in self._states[event_id]:
+        self._states[event_id][section] = True
+
+  def collapse_all(self, event_id: str) -> None:
+    """Collapse all sections for an event."""
+    if event_id in self._states:
+      for section in self._states[event_id]:
+        self._states[event_id][section] = False
+
+  def clear(self) -> None:
+    """Clear all state (called on session reset)."""
+    self._states.clear()
+
+
 class EventStream:
   """Scrollable container for history events with auto-scroll behavior."""
 
@@ -17,6 +59,7 @@ class EventStream:
     history: list[HistoryEntry],
     is_loading: bool = False,
     loading_tool: str | None = None,
+    state_manager: ExpandCollapseStateManager | None = None,
   ) -> None:
     """
     Initialize the event stream.
@@ -25,10 +68,12 @@ class EventStream:
       history: List of history entries to display
       is_loading: Whether to show loading block at bottom
       loading_tool: Name of tool being executed (shown in loading block)
+      state_manager: Optional state manager for expand/collapse persistence
     """
     self.history = history
     self.is_loading = is_loading
     self.loading_tool = loading_tool
+    self.state_manager = state_manager or ExpandCollapseStateManager()
     self._container: ui.column | None = None
     self._scroll_area: ui.scroll_area | None = None
     self._auto_scroll = True
@@ -60,9 +105,15 @@ class EventStream:
       self._render_empty_state()
       return
 
-    # Render each history entry
-    for entry in self.history:
-      render_event_block(entry, expanded=False)
+    # Render each history entry with unique event_id and state manager
+    for idx, entry in enumerate(self.history):
+      event_id = f"{entry.type}_{idx}_{entry.timestamp.timestamp()}"
+      render_event_block(
+        entry,
+        expanded=True,
+        event_id=event_id,
+        state_manager=self.state_manager,
+      )
 
     # Show loading block if executing
     if self.is_loading and self.loading_tool:
@@ -96,6 +147,8 @@ class EventStream:
     """
     Refresh the event stream with new data.
 
+    Note: State manager is preserved across refreshes (session-only persistence).
+
     Args:
       history: Updated history entries
       is_loading: Whether currently loading
@@ -120,6 +173,8 @@ class RefreshableEventStream:
     self._is_loading = False
     self._loading_tool: str | None = None
     self._scroll_area: ui.scroll_area | None = None
+    # Session-only state manager - resets on page refresh
+    self._state_manager = ExpandCollapseStateManager()
 
   def set_state(
     self,
@@ -130,6 +185,8 @@ class RefreshableEventStream:
     """
     Update the stream state and refresh.
 
+    Note: Expand/collapse state persists within session (resets on page refresh).
+
     Args:
       history: New history entries
       is_loading: Loading state
@@ -139,6 +196,10 @@ class RefreshableEventStream:
     self._is_loading = is_loading
     self._loading_tool = loading_tool
     self._render_stream.refresh()
+
+  def clear_expand_state(self) -> None:
+    """Clear all expand/collapse state (e.g., when starting new session)."""
+    self._state_manager.clear()
 
   @ui.refreshable
   def _render_stream(self) -> None:
@@ -154,9 +215,15 @@ class RefreshableEventStream:
           )
         return
 
-      # Render events
-      for entry in self._history:
-        render_event_block(entry, expanded=False)
+      # Render events with state manager for expand/collapse persistence
+      for idx, entry in enumerate(self._history):
+        event_id = f"{entry.type}_{idx}_{entry.timestamp.timestamp()}"
+        render_event_block(
+          entry,
+          expanded=True,
+          event_id=event_id,
+          state_manager=self._state_manager,
+        )
 
       # Loading block
       if self._is_loading and self._loading_tool:
@@ -192,6 +259,7 @@ def render_event_stream(
   history: list[HistoryEntry],
   is_loading: bool = False,
   loading_tool: str | None = None,
+  state_manager: ExpandCollapseStateManager | None = None,
 ) -> EventStream:
   """
   Render an event stream component.
@@ -200,10 +268,11 @@ def render_event_stream(
     history: List of history entries
     is_loading: Whether to show loading state
     loading_tool: Name of tool being executed
+    state_manager: Optional state manager for expand/collapse persistence
 
   Returns:
     The EventStream instance
   """
-  stream = EventStream(history, is_loading, loading_tool)
+  stream = EventStream(history, is_loading, loading_tool, state_manager)
   stream.render()
   return stream

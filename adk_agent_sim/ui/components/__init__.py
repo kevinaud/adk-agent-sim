@@ -20,6 +20,7 @@ from adk_agent_sim.ui.components.event_block import (
 )
 from adk_agent_sim.ui.components.event_stream import (
   EventStream,
+  ExpandCollapseStateManager,
   RefreshableEventStream,
   render_event_stream,
 )
@@ -27,6 +28,21 @@ from adk_agent_sim.ui.components.json_tree import (
   JsonTree,
   TruncatedJsonTree,
   render_json_tree,
+)
+from adk_agent_sim.ui.components.text_presenter import (
+  PresentationMode,
+  PresentationModeManager,
+  TextPresenter,
+  get_mode_manager,
+  render_text_presenter,
+)
+from adk_agent_sim.ui.components.tool_catalog import (
+  SelectableToolCatalog,
+  ToolCatalog,
+  ToolInfo,
+  extract_tool_info,
+  render_selectable_tool_catalog,
+  render_tool_catalog,
 )
 
 __all__ = [
@@ -48,10 +64,24 @@ __all__ = [
   "render_event_block",
   # Event Stream
   "EventStream",
+  "ExpandCollapseStateManager",
   "RefreshableEventStream",
   "render_event_stream",
   # JSON Tree
   "JsonTree",
   "TruncatedJsonTree",
   "render_json_tree",
+  # Text Presenter
+  "PresentationMode",
+  "PresentationModeManager",
+  "TextPresenter",
+  "get_mode_manager",
+  "render_text_presenter",
+  # Tool Catalog
+  "SelectableToolCatalog",
+  "ToolCatalog",
+  "ToolInfo",
+  "extract_tool_info",
+  "render_selectable_tool_catalog",
+  "render_tool_catalog",
 ]

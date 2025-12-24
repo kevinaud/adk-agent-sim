@@ -37,6 +37,7 @@ class SimulationPage:
     self._sidebar_content: ui.column | None = None
     self._selected_tool: str | None = None
     self._is_executing: bool = False
+    self._state_badge_refresh: Any | None = None  # Function to refresh state badge
 
   async def render(self) -> None:
     """Render the simulation page."""
@@ -85,16 +86,27 @@ class SimulationPage:
           ui.icon("smart_toy", size="sm")
           ui.label(f"Simulating: {agent_name}").classes("text-xl font-semibold")
 
-        # Right: Session state badge
-        session = self.controller.current_session
-        if session:
-          state_config = {
-            SessionState.AWAITING_QUERY: ("Awaiting Query", "yellow"),
-            SessionState.ACTIVE: ("Active", "green"),
-            SessionState.COMPLETED: ("Completed", "blue"),
-          }
-          label, color = state_config.get(session.state, ("Unknown", "gray"))
-          ui.badge(label, color=color)
+        # Right: Session state badge (refreshable)
+        @ui.refreshable  # type: ignore[reportArgumentType]
+        def render_state_badge() -> None:
+          session = self.controller.current_session
+          if session:
+            state_config = {
+              SessionState.AWAITING_QUERY: (
+                "Awaiting Query",
+                "yellow",
+                "text-yellow-900",
+              ),
+              SessionState.ACTIVE: ("Active", "green", "text-green-900"),
+              SessionState.COMPLETED: ("Completed", "blue", "text-blue-900"),
+            }
+            label, color, text_class = state_config.get(
+              session.state, ("Unknown", "gray", "text-gray-900")
+            )
+            ui.badge(label, color=color).classes(f"{text_class} font-semibold")
+
+        render_state_badge()
+        self._state_badge_refresh = render_state_badge.refresh  # Store refresh function
 
   def _render_sidebar_content(self) -> None:
     """Render the sidebar content based on session state."""
@@ -323,6 +335,10 @@ class SimulationPage:
 
   def _refresh_ui(self) -> None:
     """Refresh the UI after state changes."""
+    # Refresh state badge
+    if self._state_badge_refresh:
+      self._state_badge_refresh()  # type: ignore[reportUnknownMemberType]
+
     # Refresh event stream
     self._refresh_event_stream()
 

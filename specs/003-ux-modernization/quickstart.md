@@ -33,6 +33,7 @@ Open http://localhost:8080 to see the current UI.
 | System Prompt | `adk_agent_sim/ui/components/system_prompt.py` | Update to expandable header |
 | Action Panel | `adk_agent_sim/ui/components/action_panel.py` | Move to sidebar |
 | Tool Executor | `adk_agent_sim/ui/components/tool_executor.py` | Add loading states |
+| Agent Card | `adk_agent_sim/ui/components/agent_card.py` | Fix description bug |
 
 ### 3. New Files to Create
 
@@ -42,6 +43,8 @@ touch adk_agent_sim/ui/components/agent_card.py
 touch adk_agent_sim/ui/components/event_stream.py
 touch adk_agent_sim/ui/components/event_block.py
 touch adk_agent_sim/ui/components/json_tree.py
+touch adk_agent_sim/ui/components/text_presenter.py
+touch adk_agent_sim/ui/components/tool_catalog.py
 ```
 
 ### 4. Quality Checks
@@ -73,32 +76,41 @@ Changes to Python files will automatically refresh the browser.
 Recommended sequence to minimize integration issues:
 
 1. **styles.py** - Update design tokens (no breaking changes)
-2. **json_tree.py** - New standalone component, testable in isolation
-3. **event_block.py** - Depends on json_tree, renders single events
-4. **event_stream.py** - Container using event_block
-5. **agent_card.py** - New standalone component
-6. **agent_select.py** - Rewrite page using agent_card
-7. **system_prompt.py** - Update existing component
-8. **simulation.py** - Final integration (depends on all above)
+2. **json_tree.py** - Standalone component for collapsible JSON display
+3. **text_presenter.py** - New component with Raw/JSON/Markdown toggle; uses json_tree for JSON mode
+4. **event_block.py** - Depends on text_presenter, renders single events; add Expand All/Collapse All buttons
+5. **event_stream.py** - Container using event_block; add `ExpandCollapseStateManager` for session-only persistence
+6. **agent_card.py** - New standalone component; fix description bug (ensure description renders)
+7. **agent_select.py** - Rewrite page using agent_card
+8. **system_prompt.py** - Update existing component
+9. **tool_catalog.py** - New read-only view of agent tools
+10. **simulation.py** - Final integration (depends on all above)
 
 ## Testing Strategy
 
 ### Manual Testing
 
 1. Launch app, verify agent grid renders
-2. Click agent card, verify navigation
+2. Click agent card, verify navigation and **description displays correctly**
 3. Enter query, verify it appears in event stream
 4. Execute tool, verify loading state and result display
-5. Expand/collapse JSON tree, verify interaction
-6. Send final response, verify completion state
-7. Export trace, verify file downloads
+5. Verify tool result sections are **expanded by default**
+6. Expand/collapse JSON tree, verify interaction
+7. **Click "Collapse All" button, verify all sections collapse**
+8. **Refresh page, verify expand/collapse state resets** (session-only)
+9. Execute tool returning JSON string, verify **text presenter auto-selects JSON mode**
+10. **Click Raw toggle on text presenter, verify plain text display**
+11. **Click Markdown toggle, verify markdown rendering**
+12. **Click "Tool Catalog", verify list of all agent tools**
+13. Send final response, verify completion state
+14. Export trace, verify file downloads
 
 ### Automated Testing
 
 ```python
-# Example unit test for JsonTree
-def test_json_tree_renders_dict():
-    """JsonTree should create expansion elements for dict keys."""
+# Example unit test for TextPresenter
+def test_text_presenter_auto_detects_json():
+    """TextPresenter should auto-select JSON mode for valid JSON content."""
     # Test using NiceGUI's testing utilities
     ...
 ```

@@ -7,7 +7,7 @@ import typer
 from rich.console import Console
 from structlog.typing import FilteringBoundLogger
 
-from adk_agent_sim.demo.agents.demo_agent.agent import get_demo_agent
+from adk_agent_sim.demo.agents import math_agent, sqlite_agent
 from adk_agent_sim.logging_config import configure_logging
 from adk_agent_sim.simulator import AgentSimulator
 
@@ -33,9 +33,16 @@ def run(port: int = 8888):
   log.info("Running demo", port=port)
   console.print(f"Starting demo app on port [bold blue]{port}[/bold blue]...")
 
-  demo_agent = get_demo_agent()
+  math_agent_instance = math_agent.get_math_agent()
+  sqlite_agent_instance = sqlite_agent.get_sqlite_agent()
 
-  AgentSimulator(agents={"DemoAgent": demo_agent}, port=port).run()
+  AgentSimulator(
+    agents={
+      "MathAgent": math_agent_instance,
+      "SQLiteAgent": sqlite_agent_instance,
+    },
+    port=port,
+  ).run()
 
 
 if __name__ == "__main__":

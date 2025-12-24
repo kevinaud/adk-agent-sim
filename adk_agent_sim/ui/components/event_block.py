@@ -16,6 +16,7 @@ from adk_agent_sim.models.history import (
   UserQuery,
 )
 from adk_agent_sim.ui.components.json_tree import render_json_tree
+from adk_agent_sim.ui.components.text_presenter import render_text_presenter
 from adk_agent_sim.ui.styles import (
   EVENT_BLOCK_STYLE,
   EVENT_ICONS,
@@ -37,11 +38,40 @@ class EventBlock(ABC):
     """
     self.entry = entry
     self.expanded = expanded
+    self._card: ui.card | None = None
 
   @abstractmethod
   def render_content(self) -> None:
     """Render the block-specific content. Implemented by subclasses."""
     pass
+
+  def _expand_all(self) -> None:
+    """Expand all collapsible sections in this event block."""
+    if self._card:
+      # Use JavaScript to expand all q-expansion-item elements
+      self._card.run_method(
+        "querySelectorAll",
+        ".q-expansion-item:not(.q-expansion-item--expanded) "
+        "> .q-expansion-item__container > .q-item",
+      )
+      ui.run_javascript(
+        f'''
+        document.querySelectorAll(
+          '[id="{self._card.id}"] .q-expansion-item:not(.q-expansion-item--expanded)'
+        ).forEach(el => el.querySelector('.q-item')?.click());
+        '''
+      )
+
+  def _collapse_all(self) -> None:
+    """Collapse all collapsible sections in this event block."""
+    if self._card:
+      ui.run_javascript(
+        f'''
+        document.querySelectorAll(
+          '[id="{self._card.id}"] .q-expansion-item--expanded'
+        ).forEach(el => el.querySelector('.q-item')?.click());
+        '''
+      )
 
   def render(self) -> None:
     """Render the complete event block."""
@@ -55,14 +85,27 @@ class EventBlock(ABC):
       f"border-left-color: {border_color};"
     )
 
-    with ui.card().style(style).classes("w-full"):
-      # Header row with icon, badge, and timestamp
+    self._card = ui.card().style(style).classes("w-full")
+    with self._card:
+      # Header row with icon, badge, expand/collapse buttons, and timestamp
       with ui.row().classes("w-full items-center justify-between mb-2"):
         with ui.row().classes("items-center gap-2"):
           ui.icon(icon).classes("text-lg")
           self._render_badge(entry_type)
-        timestamp_str = self.entry.timestamp.strftime("%H:%M:%S")
-        ui.label(timestamp_str).classes("text-xs text-gray-500")
+
+        with ui.row().classes("items-center gap-1"):
+          # Expand/Collapse All buttons
+          ui.button(
+            icon="unfold_more",
+            on_click=self._expand_all,
+          ).props("flat dense size=xs").tooltip("Expand All")
+          ui.button(
+            icon="unfold_less",
+            on_click=self._collapse_all,
+          ).props("flat dense size=xs").tooltip("Collapse All")
+
+          timestamp_str = self.entry.timestamp.strftime("%H:%M:%S")
+          ui.label(timestamp_str).classes("text-xs text-gray-500 ml-2")
 
       # Content area
       self.render_content()
@@ -139,13 +182,18 @@ class ToolExecutionBlock(EventBlock):
       with ui.expansion("Result", icon="check_circle", value=self.expanded).classes(
         "w-full"
       ):
-        render_json_tree(
-          self.output.result,
-          label="result",
-          expanded=True,
-          max_depth=2,
-          truncate=True,
-        )
+        # Use TextPresenter for string results (supports Raw/JSON/Markdown toggle)
+        if isinstance(self.output.result, str):
+          element_id = f"tool_exec_{self.call.call_id}_result"
+          render_text_presenter(self.output.result, element_id)
+        else:
+          render_json_tree(
+            self.output.result,
+            label="result",
+            expanded=True,
+            max_depth=2,
+            truncate=True,
+          )
 
 
 class ToolCallBlock(EventBlock):
@@ -188,13 +236,18 @@ class ToolOutputBlock(EventBlock):
     with ui.expansion("Result", icon="check_circle", value=self.expanded).classes(
       "w-full"
     ):
-      render_json_tree(
-        self.entry.result,
-        label="result",
-        expanded=True,
-        max_depth=2,
-        truncate=True,
-      )
+      # Use TextPresenter for string results (supports Raw/JSON/Markdown toggle)
+      if isinstance(self.entry.result, str):
+        element_id = f"tool_output_{self.entry.call_id}_result"
+        render_text_presenter(self.entry.result, element_id)
+      else:
+        render_json_tree(
+          self.entry.result,
+          label="result",
+          expanded=True,
+          max_depth=2,
+          truncate=True,
+        )
 
 
 class ToolErrorBlock(EventBlock):
@@ -302,13 +355,22 @@ def create_event_block(entry: HistoryEntry, expanded: bool = False) -> EventBloc
     return AgentResponseBlock(entry, expanded)
 
 
-def render_event_block(entry: HistoryEntry, expanded: bool = False) -> None:
+def render_event_block(
+  entry: HistoryEntry,
+  expanded: bool = False,
+  event_id: str | None = None,
+  state_manager: object | None = None,
+) -> None:
   """
   Render an event block for a history entry.
 
   Args:
     entry: The history entry to render
     expanded: Initial expansion state for collapsible content
+    event_id: Optional unique ID for state tracking
+    state_manager: Optional state manager for expand/collapse persistence
   """
+  # Note: event_id and state_manager are accepted for API compatibility
+  # but not yet used - expand/collapse state is managed per-block currently
   block = create_event_block(entry, expanded)
   block.render()

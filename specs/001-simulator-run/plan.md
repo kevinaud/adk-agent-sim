@@ -5,7 +5,7 @@
 
 ## Summary
 
-Implement the core "Simulator Run" feature enabling human-in-the-loop simulation of ADK agents via a NiceGUI-based web interface. The user selects an agent, enters a query, manually invokes tools through dynamically-generated forms, and exports the session as an ADK-compatible `EvalCase` Golden Trace.
+Implement the core "Simulator Run" feature enabling human-in-the-loop simulation of ADK agents via a NiceGUI-based web interface. The user selects an agent, enters a query, manually invokes tools through dynamically-generated forms, and exports the session to an ADK-compatible `EvalSet` file (containing `EvalCase` entries) for use with the `adk eval` CLI.
 
 **Technical Approach**: In-process library pattern using NiceGUI (FastAPI/Starlette-based) running on the Python event loop with direct access to Agent instances—no IPC or pickling required.
 
@@ -56,8 +56,9 @@ specs/001-simulator-run/
 
 ```text
 adk_agent_sim/
-├── __init__.py                    # Public API: AgentSimulator
+├── __init__.py                    # Public API: AgentSimulator, SimulatedAgentConfig
 ├── simulator.py                   # AgentSimulator class (entry point)
+├── config.py                      # SimulatedAgentConfig dataclass
 ├── controller.py                  # SimulationController orchestration
 ├── session.py                     # SimulationSession state machine
 ├── models/
@@ -85,7 +86,8 @@ adk_agent_sim/
 │   └── tool_runner.py             # Async tool execution wrapper (FR-011)
 └── export/
     ├── __init__.py
-    └── golden_trace.py            # EvalCase assembly + JSON export (FR-018-025)
+    ├── golden_trace.py            # EvalCase assembly (FR-024-029)
+    └── eval_set_writer.py         # EvalSet file create/append logic (FR-020-023)
 
 tests/
 ├── conftest.py                    # Shared fixtures (mock agents, tools)
@@ -113,7 +115,8 @@ tests/
 | FR-004 | `ui/components/schema_form.py` | Recursive `_render_field(schema, path)` with type dispatch |
 | FR-005 | `ui/components/schema_form.py` | `ui.label(schema.description)` for each field |
 | FR-006 | `ui/components/schema_form.py` | Pre-submit validation checking `schema.required` |
-| FR-007 | `ui/pages/agent_select.py` | `ui.select` with agent names, locks on selection |
+| FR-007 | `config.py` | `SimulatedAgentConfig` dataclass with `name`, `agent`, `eval_set_path` |
+| FR-007a | `ui/pages/agent_select.py` | Agent selection from list of configs, locks on selection |
 | FR-008 | `ui/components/system_prompt.py` | `ui.expansion` with `agent.canonical_instruction()` |
 | FR-009 | `ui/pages/simulation.py` | Text input or schema form for initial query |
 | FR-010 | `ui/pages/simulation.py` | Schema form rendered if `agent.input_schema` exists |
@@ -126,22 +129,25 @@ tests/
 | FR-017 | `session.py` | `list[HistoryEntry]` in `SimulationSession` |
 | FR-018 | `ui/components/history_panel.py` | Render each `HistoryEntry` variant |
 | FR-019 | `ui/components/history_panel.py` | Distinct card styles per entry type |
-| FR-020 | `export/golden_trace.py` | `GoldenTraceBuilder.build() → EvalCase` |
-| FR-021 | `export/golden_trace.py` | Uses `google.adk.evaluation.eval_case.EvalCase` directly |
-| FR-022 | `export/golden_trace.py` | `f"{snake_case(agent.name)}_{iso_timestamp()}"` |
-| FR-023 | `export/golden_trace.py` | Single `Invocation` per session |
-| FR-024 | `export/golden_trace.py` | `Content(parts=[Part(text=query)])` |
-| FR-025 | `export/golden_trace.py` | `Content(parts=[Part(text=response)])` |
-| FR-026 | `export/golden_trace.py` | `IntermediateData(tool_uses=[...], tool_responses=[...])` |
-| FR-027 | `export/golden_trace.py` | `time.time()` at session start |
-| FR-028 | `execution/tool_runner.py` | `try/except` around `run_async()` |
-| FR-029 | `session.py` | `ToolError` history entry with exc info |
-| FR-030 | `ui/pages/simulation.py` | Session state remains `active` after error |
-| FR-031 | `export/golden_trace.py` | `FunctionResponse(response={"error": ...})` |
-| FR-032 | `ui/components/tool_executor.py` | `ui.label` with reactive timer (`asyncio` based) |
-| FR-033 | `ui/components/tool_executor.py` | `ui.button("Cancel")` sets `asyncio.Event` |
-| FR-034 | `execution/context_factory.py` | `create_tool_context(session, tool)` |
-| FR-035 | `execution/context_factory.py` | `create_invocation_context(session)` |
+| FR-020 | `ui/pages/simulation.py` | "Export" button (not download) on session completion |
+| FR-021 | `export/eval_set_writer.py` | Write to `eval_set_path` from config |
+| FR-022 | `export/eval_set_writer.py` | Create new EvalSet if file doesn't exist |
+| FR-023 | `export/eval_set_writer.py` | Load existing EvalSet, append new EvalCase, write back |
+| FR-024 | `export/golden_trace.py` | Build `EvalCase` from session data |
+| FR-025 | `export/golden_trace.py` | `f"{snake_case(agent.name)}_{iso_timestamp()}"` for eval_id |
+| FR-026 | `export/golden_trace.py` | Single `Invocation` per session |
+| FR-027 | `export/golden_trace.py` | `Content(parts=[Part(text=query)])` |
+| FR-028 | `export/golden_trace.py` | `Content(parts=[Part(text=response)])` |
+| FR-029 | `export/golden_trace.py` | `IntermediateData(tool_uses=[...], tool_responses=[...])` |
+| FR-030 | `export/golden_trace.py` | `time.time()` at session start |
+| FR-031 | `execution/tool_runner.py` | `try/except` around `run_async()` |
+| FR-032 | `session.py` | `ToolError` history entry with exc info |
+| FR-033 | `ui/pages/simulation.py` | Session state remains `active` after error |
+| FR-034 | `export/golden_trace.py` | `FunctionResponse(response={"error": ...})` |
+| FR-035 | `ui/components/tool_executor.py` | `ui.label` with reactive timer (`asyncio` based) |
+| FR-036 | `ui/components/tool_executor.py` | `ui.button("Cancel")` sets `asyncio.Event` |
+| FR-037 | `execution/context_factory.py` | `create_tool_context(session, tool)` |
+| FR-038 | `execution/context_factory.py` | `create_invocation_context(session)` |
 
 ## Complexity Tracking
 
@@ -161,6 +167,7 @@ tests/
 2. **ADK ToolContext construction**: What fields are required to construct a valid `ToolContext` and `InvocationContext`.
 3. **Schema.items handling**: How `google.genai.types.Schema` represents array item schemas.
 4. **EvalCase structure verification**: Confirm field names and types match ADK evaluation expectations.
+5. **EvalSet file operations**: How to safely read/write/append to EvalSet JSON files (atomic operations, locking).
 
 ### Decisions
 
@@ -180,9 +187,11 @@ tests/
 See [data-model.md](data-model.md) for full entity definitions.
 
 **Key Entities:**
+- `SimulatedAgentConfig`: Configuration for an agent (name, agent instance, eval_set_path)
 - `SimulationSession`: Holds agent ref, history list, state enum
 - `HistoryEntry`: Discriminated union (`UserQuery | ToolCall | ToolOutput | ToolError | FinalResponse`)
 - `GoldenTraceBuilder`: Assembles `EvalCase` from session data
+- `EvalSetWriter`: Handles create/append logic for EvalSet files
 
 ### Contracts
 
@@ -199,10 +208,18 @@ See [contracts/README.md](contracts/README.md) for internal Python interface def
 See [quickstart.md](quickstart.md) for developer usage guide.
 
 ```python
-from adk_agent_sim import AgentSimulator
+from adk_agent_sim import AgentSimulator, SimulatedAgentConfig
 from my_project.agents import my_agent
 
-simulator = AgentSimulator(agents={"MyAgent": my_agent})
+simulator = AgentSimulator(
+  agents=[
+    SimulatedAgentConfig(
+      name="My Agent",
+      agent=my_agent,
+      eval_set_path="evals/my_agent_evals.json",
+    )
+  ]
+)
 simulator.run()  # Opens browser at http://localhost:8080
 ```
 
@@ -230,4 +247,6 @@ None required—`nicegui` is a pure Python package installable via `uv`.
 - [ ] All new files pass `pyright --strict` with zero errors
 - [ ] Unit tests cover Schema → Form mapping for all `Type` variants
 - [ ] Integration test validates `EvalCase` export parses correctly
+- [ ] Integration test validates `EvalSet` file create/append operations
+- [ ] EvalSet files work with `adk eval` CLI
 - [ ] Manual smoke test: complete simulation session with demo agent

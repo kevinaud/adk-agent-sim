@@ -22,6 +22,31 @@ TOOL_EXECUTION_TIMEOUT = 30000  # Playwright uses milliseconds
 
 
 # =============================================================================
+# Helper Functions for Tool Selection (Card-based UI)
+# =============================================================================
+
+
+def select_tool_from_catalog(page: "Page", tool_name: str) -> None:
+  """Select a tool from the ToolCatalog card-based UI.
+
+  The ToolCatalog displays tools as clickable cards. This helper:
+  1. Waits for the tool card to be visible
+  2. Clicks on the card to select it
+
+  Args:
+    page: Playwright Page instance
+    tool_name: Name of the tool to select (e.g., "add_numbers")
+  """
+  # Wait for the tool card to be visible in the catalog
+  # Tool catalog cards have cursor-pointer and mb-2
+  # classes to distinguish from parent cards
+  tool_card = page.locator(f'.q-card.cursor-pointer:has-text("{tool_name}")')
+  tool_card.wait_for(timeout=ELEMENT_TIMEOUT)
+  tool_card.click()
+  page.wait_for_load_state("networkidle")
+
+
+# =============================================================================
 # User Story 1: Complete Simulation Flow (Happy Path)
 # =============================================================================
 
@@ -86,12 +111,8 @@ class TestHappyPath:
     # Wait for action panel
     page.wait_for_selector("text=Choose Action", timeout=ELEMENT_TIMEOUT)
 
-    # Open tool dropdown and select add_numbers
-    tool_select = page.locator(".q-select").last
-    tool_select.click()
-    page.wait_for_selector("text=add_numbers", timeout=ELEMENT_TIMEOUT)
-    # Use first to select from dropdown options
-    page.locator("text=add_numbers").first.click()
+    # Select add_numbers tool from the card-based catalog
+    select_tool_from_catalog(page, "add_numbers")
 
     # Click Select Tool button
     page.locator("button:has-text('Select Tool')").click()
@@ -118,10 +139,8 @@ class TestHappyPath:
     page.locator("button:has-text('Start Session')").click()
     page.wait_for_load_state("networkidle")
 
-    # Select add_numbers tool
-    tool_select = page.locator(".q-select").last
-    tool_select.click()
-    page.locator("text=add_numbers").first.click()
+    # Select add_numbers tool from the card-based catalog
+    select_tool_from_catalog(page, "add_numbers")
     page.locator("button:has-text('Select Tool')").click()
     page.wait_for_load_state("networkidle")
 
@@ -164,10 +183,8 @@ class TestHappyPath:
     page.locator("button:has-text('Start Session')").click()
     page.wait_for_load_state("networkidle")
 
-    # Execute add_numbers tool
-    tool_select = page.locator(".q-select").last
-    tool_select.click()
-    page.locator("text=add_numbers").first.click()
+    # Execute add_numbers tool from the card-based catalog
+    select_tool_from_catalog(page, "add_numbers")
     page.locator("button:has-text('Select Tool')").click()
     page.wait_for_load_state("networkidle")
 
@@ -214,10 +231,8 @@ class TestWidgetRendering:
     page.locator("button:has-text('Start Session')").click()
     page.wait_for_load_state("networkidle")
 
-    # Select add_numbers
-    tool_select = page.locator(".q-select").last
-    tool_select.click()
-    page.locator("text=add_numbers").first.click()
+    # Select add_numbers from the card-based catalog
+    select_tool_from_catalog(page, "add_numbers")
     page.locator("button:has-text('Select Tool')").click()
     page.wait_for_load_state("networkidle")
 
@@ -246,10 +261,8 @@ class TestWidgetRendering:
     page.locator("button:has-text('Start Session')").click()
     page.wait_for_load_state("networkidle")
 
-    # Select greet tool
-    tool_select = page.locator(".q-select").last
-    tool_select.click()
-    page.locator("text=greet").first.click()
+    # Select greet tool from the card-based catalog
+    select_tool_from_catalog(page, "greet")
     page.locator("button:has-text('Select Tool')").click()
     page.wait_for_load_state("networkidle")
 
@@ -276,10 +289,8 @@ class TestWidgetRendering:
     page.locator("button:has-text('Start Session')").click()
     page.wait_for_load_state("networkidle")
 
-    # Select greet tool
-    tool_select = page.locator(".q-select").last
-    tool_select.click()
-    page.locator("text=greet").first.click()
+    # Select greet tool from the card-based catalog
+    select_tool_from_catalog(page, "greet")
     page.locator("button:has-text('Select Tool')").click()
     page.wait_for_load_state("networkidle")
 
@@ -306,10 +317,8 @@ class TestWidgetRendering:
     page.locator("button:has-text('Start Session')").click()
     page.wait_for_load_state("networkidle")
 
-    # Select get_status tool
-    tool_select = page.locator(".q-select").last
-    tool_select.click()
-    page.locator("text=get_status").first.click()
+    # Select get_status tool from the card-based catalog
+    select_tool_from_catalog(page, "get_status")
     page.locator("button:has-text('Select Tool')").click()
     page.wait_for_load_state("networkidle")
 
@@ -352,10 +361,8 @@ class TestErrorHandling:
     page.locator("button:has-text('Start Session')").click()
     page.wait_for_load_state("networkidle")
 
-    # Select fail_always tool
-    tool_select = page.locator(".q-select").last
-    tool_select.click()
-    page.locator("text=fail_always").first.click()
+    # Select fail_always tool from the card-based catalog
+    select_tool_from_catalog(page, "fail_always")
     page.locator("button:has-text('Select Tool')").click()
     page.wait_for_load_state("networkidle")
 
@@ -387,10 +394,8 @@ class TestErrorHandling:
     page.locator("button:has-text('Start Session')").click()
     page.wait_for_load_state("networkidle")
 
-    # Execute fail_always
-    tool_select = page.locator(".q-select").last
-    tool_select.click()
-    page.locator("text=fail_always").first.click()
+    # Execute fail_always from the card-based catalog
+    select_tool_from_catalog(page, "fail_always")
     page.locator("button:has-text('Select Tool')").click()
     page.wait_for_load_state("networkidle")
     page.locator("button:has-text('Execute')").click()
@@ -401,10 +406,8 @@ class TestErrorHandling:
     # Verify we can still access the action panel and select another tool
     page.wait_for_selector("text=Choose Action", timeout=ELEMENT_TIMEOUT)
 
-    # Select a different tool (add_numbers)
-    tool_select = page.locator(".q-select").last
-    tool_select.click()
-    page.locator("text=add_numbers").first.click()
+    # Select a different tool (add_numbers) from the card-based catalog
+    select_tool_from_catalog(page, "add_numbers")
     page.locator("button:has-text('Select Tool')").click()
     page.wait_for_load_state("networkidle")
 
@@ -428,10 +431,8 @@ class TestErrorHandling:
     page.locator("button:has-text('Start Session')").click()
     page.wait_for_load_state("networkidle")
 
-    # Execute fail_always
-    tool_select = page.locator(".q-select").last
-    tool_select.click()
-    page.locator("text=fail_always").first.click()
+    # Execute fail_always from the card-based catalog
+    select_tool_from_catalog(page, "fail_always")
     page.locator("button:has-text('Select Tool')").click()
     page.wait_for_load_state("networkidle")
     page.locator("button:has-text('Execute')").click()
@@ -439,10 +440,8 @@ class TestErrorHandling:
     # Wait for error
     page.wait_for_timeout(2000)
 
-    # Now execute add_numbers successfully
-    tool_select = page.locator(".q-select").last
-    tool_select.click()
-    page.locator("text=add_numbers").first.click()
+    # Now execute add_numbers successfully from the card-based catalog
+    select_tool_from_catalog(page, "add_numbers")
     page.locator("button:has-text('Select Tool')").click()
     page.wait_for_load_state("networkidle")
 
@@ -488,10 +487,8 @@ class TestStateIsolation:
     page.locator("button:has-text('Start Session')").click()
     page.wait_for_load_state("networkidle")
 
-    # Execute add_numbers
-    tool_select = page.locator(".q-select").last
-    tool_select.click()
-    page.locator("text=add_numbers").first.click()
+    # Execute add_numbers from the card-based catalog
+    select_tool_from_catalog(page, "add_numbers")
     page.locator("button:has-text('Select Tool')").click()
     page.wait_for_load_state("networkidle")
 
@@ -630,10 +627,8 @@ class TestScreenshotCapture:
     page.locator("button:has-text('Start Session')").click()
     page.wait_for_load_state("networkidle")
 
-    # Select add_numbers tool
-    tool_select = page.locator(".q-select").last
-    tool_select.click()
-    page.locator("text=add_numbers").first.click()
+    # Select add_numbers tool from the card-based catalog
+    select_tool_from_catalog(page, "add_numbers")
     page.locator("button:has-text('Select Tool')").click()
     page.wait_for_load_state("networkidle")
 
@@ -669,10 +664,8 @@ class TestScreenshotCapture:
     page.locator("button:has-text('Start Session')").click()
     page.wait_for_load_state("networkidle")
 
-    # Select and execute add_numbers
-    tool_select = page.locator(".q-select").last
-    tool_select.click()
-    page.locator("text=add_numbers").first.click()
+    # Select and execute add_numbers from the card-based catalog
+    select_tool_from_catalog(page, "add_numbers")
     page.locator("button:has-text('Select Tool')").click()
     page.wait_for_load_state("networkidle")
 
@@ -708,10 +701,8 @@ class TestScreenshotCapture:
     page.locator("button:has-text('Start Session')").click()
     page.wait_for_load_state("networkidle")
 
-    # Select and execute fail_always
-    tool_select = page.locator(".q-select").last
-    tool_select.click()
-    page.locator("text=fail_always").first.click()
+    # Select and execute fail_always from the card-based catalog
+    select_tool_from_catalog(page, "fail_always")
     page.locator("button:has-text('Select Tool')").click()
     page.wait_for_load_state("networkidle")
 
@@ -743,10 +734,8 @@ class TestScreenshotCapture:
     page.locator("button:has-text('Start Session')").click()
     page.wait_for_load_state("networkidle")
 
-    # Execute add_numbers
-    tool_select = page.locator(".q-select").last
-    tool_select.click()
-    page.locator("text=add_numbers").first.click()
+    # Execute add_numbers from the card-based catalog
+    select_tool_from_catalog(page, "add_numbers")
     page.locator("button:has-text('Select Tool')").click()
     page.wait_for_load_state("networkidle")
 
@@ -768,3 +757,128 @@ class TestScreenshotCapture:
 
     # Capture screenshot
     capture_screenshot("session-complete")
+
+  def test_capture_text_presentation_raw_mode(
+    self, page: Page, capture_screenshot: Callable[[str], None]
+  ) -> None:
+    """Capture text output in Raw presentation mode.
+
+    TC-05 Step 8: Screenshot of text output with Raw toggle selected.
+    """
+    # Start session
+    page.wait_for_selector("text=TestAgent", timeout=ELEMENT_TIMEOUT)
+    page.locator('.q-card:has-text("TestAgent")').click()
+    page.wait_for_load_state("networkidle")
+
+    query_input = page.locator("textarea")
+    query_input.wait_for(timeout=ELEMENT_TIMEOUT)
+    query_input.fill("Get user info")
+    page.locator("button:has-text('Start Session')").click()
+    page.wait_for_load_state("networkidle")
+
+    # Execute get_user_info tool
+    select_tool_from_catalog(page, "get_user_info")
+    page.locator("button:has-text('Select Tool')").click()
+    page.wait_for_load_state("networkidle")
+
+    user_id_input = (
+      page.locator("label:has-text('User Id')").locator("..").locator("input")
+    )
+    user_id_input.fill("42")
+    page.locator("button:has-text('Execute')").click()
+
+    # Wait for result
+    page.wait_for_timeout(2000)
+    page.wait_for_selector("text=Choose Action", timeout=TOOL_EXECUTION_TIMEOUT)
+
+    # Ensure Raw mode is selected (should be default)
+    page.wait_for_selector("button:has-text('Raw')", timeout=ELEMENT_TIMEOUT)
+
+    # Capture screenshot showing Raw mode
+    capture_screenshot("text-presentation-raw")
+
+  def test_capture_text_presentation_json_mode(
+    self, page: Page, capture_screenshot: Callable[[str], None]
+  ) -> None:
+    """Capture text output in JSON presentation mode.
+
+    TC-05 Step 9: Screenshot of text output with JSON toggle selected.
+    """
+    # Start session
+    page.wait_for_selector("text=TestAgent", timeout=ELEMENT_TIMEOUT)
+    page.locator('.q-card:has-text("TestAgent")').click()
+    page.wait_for_load_state("networkidle")
+
+    query_input = page.locator("textarea")
+    query_input.wait_for(timeout=ELEMENT_TIMEOUT)
+    query_input.fill("Get user info")
+    page.locator("button:has-text('Start Session')").click()
+    page.wait_for_load_state("networkidle")
+
+    # Execute get_user_info tool
+    select_tool_from_catalog(page, "get_user_info")
+    page.locator("button:has-text('Select Tool')").click()
+    page.wait_for_load_state("networkidle")
+
+    user_id_input = (
+      page.locator("label:has-text('User Id')").locator("..").locator("input")
+    )
+    user_id_input.fill("42")
+    page.locator("button:has-text('Execute')").click()
+
+    # Wait for result
+    page.wait_for_timeout(2000)
+    page.wait_for_selector("text=Choose Action", timeout=TOOL_EXECUTION_TIMEOUT)
+
+    # Click JSON toggle button
+    json_button = page.locator("button:has-text('JSON')")
+    json_button.wait_for(timeout=ELEMENT_TIMEOUT)
+    json_button.click()
+    page.wait_for_timeout(500)  # Wait for mode switch
+
+    # Capture screenshot showing JSON mode
+    capture_screenshot("text-presentation-json")
+
+  def test_capture_text_presentation_markdown_mode(
+    self, page: Page, capture_screenshot: Callable[[str], None]
+  ) -> None:
+    """Capture text output in Markdown presentation mode.
+
+    TC-05 Step 10: Screenshot of text output with Markdown toggle selected.
+    """
+    # Start session
+    page.wait_for_selector("text=TestAgent", timeout=ELEMENT_TIMEOUT)
+    page.locator('.q-card:has-text("TestAgent")').click()
+    page.wait_for_load_state("networkidle")
+
+    query_input = page.locator("textarea")
+    query_input.wait_for(timeout=ELEMENT_TIMEOUT)
+    query_input.fill("Get status message")
+    page.locator("button:has-text('Start Session')").click()
+    page.wait_for_load_state("networkidle")
+
+    # Execute get_status tool (returns plain text suitable for markdown)
+    select_tool_from_catalog(page, "get_status")
+    page.locator("button:has-text('Select Tool')").click()
+    page.wait_for_load_state("networkidle")
+
+    # Select dropdown for level parameter
+    level_select = (
+      page.locator("label:has-text('Level')").locator("..").locator(".q-select")
+    )
+    level_select.click()
+    page.get_by_text("high", exact=True).click()
+    page.locator("button:has-text('Execute')").click()
+
+    # Wait for result
+    page.wait_for_timeout(2000)
+    page.wait_for_selector("text=Choose Action", timeout=TOOL_EXECUTION_TIMEOUT)
+
+    # Click Markdown toggle button
+    markdown_button = page.locator("button:has-text('Markdown')")
+    markdown_button.wait_for(timeout=ELEMENT_TIMEOUT)
+    markdown_button.click()
+    page.wait_for_timeout(500)  # Wait for mode switch
+
+    # Capture screenshot showing Markdown mode
+    capture_screenshot("text-presentation-markdown")

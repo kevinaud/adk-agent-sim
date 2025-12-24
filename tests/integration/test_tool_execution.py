@@ -106,6 +106,28 @@ class TestToolExecution:
       assert result.duration_ms > 0
 
   @pytest.mark.asyncio
+  async def test_execute_tool_with_real_context(
+    self, controller: SimulationController, mock_agent: MockAgent
+  ) -> None:
+    """Test tool execution with real context creation (no mocking).
+
+    This test verifies that the bug where session_service was None is fixed.
+    Previously this would fail with ValidationError about session_service.
+    """
+    # Setup session
+    controller.create_session()
+    await controller.select_agent("MockAgent")
+    await controller.start_session("Test query")
+
+    # Execute tool WITHOUT mocking - this goes through real context creation
+    result = await controller.execute_tool("mock_tool", {"param": "value"})
+
+    # Should succeed without ValidationError
+    assert result.success is True
+    assert result.result == {"success": True}
+    assert result.duration_ms > 0
+
+  @pytest.mark.asyncio
   async def test_execute_tool_records_history(
     self, controller: SimulationController, mock_agent: MockAgent
   ) -> None:

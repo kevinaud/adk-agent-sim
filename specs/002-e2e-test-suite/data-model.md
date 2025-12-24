@@ -101,6 +101,8 @@ run_server (session)
 | `GREET_FORMAL` | `True` | TC-02 boolean input |
 | `STATUS_ENUM_VALUE` | `"medium"` | TC-02 enum selection |
 | `ERROR_TOOL_NAME` | `"fail_always"` | TC-03 error trigger |
+| `JSON_DATA_RESULT` | `'{"nested": {"key": "value"}}'` | TC-05 JSON auto-parse |
+| `TEST_EVAL_SET_PATH` | `"/tmp/test_evals.json"` | TC-01 EvalSet export path |
 
 ---
 
@@ -112,9 +114,10 @@ If test complexity grows, these page objects can be introduced:
 
 ```
 AgentSelectPage
-├── agent_buttons: List[Locator]  # Available agent selection buttons
-├── select_agent(name: str)       # Click agent button, wait for navigation
-└── get_agent_names() -> List[str]
+├── agent_cards: List[Locator]    # Available agent cards
+├── select_agent(name: str)       # Click agent card, wait for navigation
+├── get_agent_names() -> List[str]
+└── get_agent_description(name: str) -> str | None  # TC-07: verify description
 ```
 
 ### SimulationPage
@@ -123,23 +126,34 @@ AgentSelectPage
 SimulationPage
 ├── query_input: Locator          # Initial query textarea
 ├── start_button: Locator         # "Start Session" button
-├── tool_list: Locator            # Tool selection panel
+├── tool_catalog: Locator         # Tool catalog with all tools
+├── tool_cards: List[Locator]     # Individual tool cards with metadata
 ├── tool_form: Locator            # Dynamic parameter form
 ├── execute_button: Locator       # "Execute" button
 ├── history_panel: Locator        # History entries container
+├── event_blocks: List[Locator]   # Individual event blocks
+├── expand_all_button: Locator    # "Expand All" per event
+├── collapse_all_button: Locator  # "Collapse All" per event
 ├── final_response_input: Locator # Final response textarea
 ├── submit_button: Locator        # "Submit Final Response" button
+├── export_button: Locator        # "Export" button (after completion)
 │
 ├── enter_query(text: str)
-├── select_tool(name: str)
+├── select_tool(name: str)        # Click tool in catalog
+├── get_tool_description(name: str) -> str  # TC-06: catalog metadata
 ├── fill_form(values: dict)
 ├── execute_tool()
 ├── get_history_entries() -> List[HistoryEntry]
+├── is_section_expanded(event_index: int, section: str) -> bool  # TC-05
+├── toggle_section(event_index: int, section: str)  # TC-05
+├── click_expand_all(event_index: int)  # TC-05
+├── click_collapse_all(event_index: int)  # TC-05
 ├── submit_final_response(text: str)
+├── click_export()  # TC-01
 └── wait_for_tool_result(timeout: int)
 ```
 
-**Note**: Page objects are optional for the initial 4 tests. They can be introduced in a later iteration if test maintenance becomes burdensome.
+**Note**: Page objects are optional for the initial tests. They can be introduced in a later iteration if test maintenance becomes burdensome.
 
 ---
 

@@ -58,6 +58,30 @@ def get_status(level: Literal["low", "medium", "high"]) -> str:
   return messages[level]
 
 
+def get_user_info(user_id: int) -> str:
+  """Get user information as JSON text.
+
+  This tool returns structured data as a JSON string for testing
+  the presentation toggle functionality (Raw/JSON/Markdown modes).
+
+  Args:
+    user_id: The user ID to look up.
+
+  Returns:
+    JSON string containing user information.
+  """
+  import json
+
+  user_data = {
+    "id": user_id,
+    "name": "Test User",
+    "email": f"user{user_id}@example.com",
+    "roles": ["admin", "user"],
+    "settings": {"theme": "dark", "notifications": True},
+  }
+  return json.dumps(user_data, indent=2)
+
+
 def fail_always() -> str:
   """A tool that always fails with an error.
 
@@ -90,6 +114,7 @@ def get_test_agent() -> Agent:
       - add_numbers: Add two integers together
       - greet: Generate a greeting (with formal/informal option)
       - get_status: Get a status message by priority level
+      - get_user_info: Get user data as JSON text
       - fail_always: A tool that always fails (for error testing)
       
       Use these tools as requested by the user.
@@ -98,6 +123,7 @@ def get_test_agent() -> Agent:
       FunctionTool(add_numbers),
       FunctionTool(greet),
       FunctionTool(get_status),
+      FunctionTool(get_user_info),
       FunctionTool(fail_always),
     ],
   )
