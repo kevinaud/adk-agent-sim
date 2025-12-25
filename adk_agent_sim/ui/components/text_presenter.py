@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-import ast
 import json
 from enum import Enum
-from typing import Any
 
 from nicegui import ui
+
+from adk_agent_sim.ui.components.json_tree import render_json_tree
 
 
 class PresentationMode(Enum):
@@ -16,31 +16,6 @@ class PresentationMode(Enum):
   RAW = "raw"
   JSON = "json"
   MARKDOWN = "markdown"
-
-
-def _try_parse_as_data(content: str) -> tuple[Any, bool]:
-  """Try to parse content as JSON or Python literal.
-
-  Returns:
-    Tuple of (parsed_data, success). If parsing fails, returns (None, False).
-  """
-  # First try standard JSON
-  try:
-    parsed = json.loads(content)
-    if isinstance(parsed, (dict, list)):
-      return parsed, True
-  except (json.JSONDecodeError, TypeError):
-    pass
-
-  # Then try Python literal (handles single quotes, True/False/None)
-  try:
-    parsed = ast.literal_eval(content)
-    if isinstance(parsed, (dict, list)):
-      return parsed, True
-  except (ValueError, SyntaxError, TypeError):
-    pass
-
-  return None, False
 
 
 class PresentationModeManager:
@@ -70,10 +45,15 @@ class PresentationModeManager:
   def detect_default_mode(content: str) -> PresentationMode:
     """Auto-detect default mode based on content.
 
-    Returns JSON if content is valid JSON or Python literal (dict/list), else RAW.
+    Returns JSON if content is valid JSON object or array, else RAW.
     """
-    _, success = _try_parse_as_data(content)
-    return PresentationMode.JSON if success else PresentationMode.RAW
+    try:
+      parsed = json.loads(content)
+      if isinstance(parsed, (dict, list)):
+        return PresentationMode.JSON
+    except (json.JSONDecodeError, TypeError):
+      pass
+    return PresentationMode.RAW
 
 
 # Global mode manager instance (session-only)
@@ -193,20 +173,17 @@ class TextPresenter:
       )
 
   def _render_json_content(self) -> None:
-    """Render content in JSON mode.
-
-    First tries to parse as JSON, then as Python literal.
-    Shows pretty-printed JSON with 2-space indentation.
-    """
-    parsed, success = _try_parse_as_data(self.content)
-    if success:
-      # Pretty-print with 2-space indentation
-      pretty_json = json.dumps(parsed, indent=2, ensure_ascii=False)
-      ui.code(pretty_json, language="json").classes(
-        "w-full text-xs whitespace-pre-wrap"
+    """Render content in JSON mode using JsonTree."""
+    try:
+      parsed = json.loads(self.content)
+      render_json_tree(
+        parsed,
+        label="content",
+        expanded=True,
+        max_depth=3,
       )
-    else:
-      # Fallback to raw if parsing fails
+    except (json.JSONDecodeError, TypeError):
+      # Fallback to raw if JSON parsing fails
       ui.label("Invalid JSON - showing raw content:").classes(
         "text-xs text-amber-600 mb-1"
       )
