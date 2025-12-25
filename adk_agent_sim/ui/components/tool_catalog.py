@@ -80,12 +80,11 @@ class ToolCatalog:
 
   def _render_tool_card(self, tool_info: ToolInfo) -> None:
     """Render a single tool card with name, description, and schema."""
-    card_classes = "w-full mb-2 hover:shadow-md transition-shadow"
+    card_classes = "w-full mb-2 cursor-pointer hover:shadow-md transition-shadow"
     if self.on_select:
       card_classes += " cursor-pointer"
 
     with ui.card().classes(card_classes) as card:
-      # Click handler on card for tool selection
       if self.on_select:
         on_select_callback = self.on_select  # Capture for lambda
         card.on("click", lambda t=tool_info["name"]: on_select_callback(t))
@@ -109,7 +108,7 @@ class ToolCatalog:
           "text-sm text-gray-400 italic mt-1"
         )
 
-      # Parameter schema (always visible)
+      # Collapsible parameter schema
       if tool_info["parameters"]:
         # Filter out _required marker for display
         display_params = {
@@ -118,11 +117,9 @@ class ToolCatalog:
         required = tool_info["parameters"].get("_required", [])
 
         if display_params:
-          with ui.column().classes("w-full mt-2 pt-2 border-t border-gray-200"):
-            with ui.row().classes("items-center gap-1 mb-2"):
-              ui.icon("data_object", size="xs").classes("text-gray-500")
-              ui.label("Parameters").classes("text-xs font-medium text-gray-600")
-
+          with ui.expansion("Parameters", icon="data_object", value=False).classes(
+            "w-full mt-2"
+          ):
             # Show parameter list
             for param_name, param_info in display_params.items():
               is_required = param_name in required
@@ -154,9 +151,10 @@ class ToolCatalog:
       icon="construction",
       value=self.expanded,
     ).classes("w-full"):
-      with ui.column().classes("w-full gap-2 p-2"):
-        for tool_info in self._tool_infos:
-          self._render_tool_card(tool_info)
+      with ui.scroll_area().style("max-height: 400px").classes("w-full"):
+        with ui.column().classes("w-full gap-2 p-2"):
+          for tool_info in self._tool_infos:
+            self._render_tool_card(tool_info)
 
 
 class SelectableToolCatalog:
@@ -191,12 +189,10 @@ class SelectableToolCatalog:
     )
     bg_class = "bg-blue-50" if is_selected else "bg-white"
 
-    card_cls = (
+    with ui.card().classes(
       f"w-full mb-2 cursor-pointer hover:shadow-md transition-all "
       f"{border_class} {bg_class}"
-    )
-    with ui.card().classes(card_cls) as card:
-      # Click handler on card for tool selection
+    ) as card:
       card.on("click", lambda t=tool_info["name"]: self.on_tool_select(t))
 
       # Tool header
@@ -222,7 +218,7 @@ class SelectableToolCatalog:
           "text-sm text-gray-400 italic mt-1"
         )
 
-      # Parameter schema (always visible)
+      # Collapsible parameter schema
       if tool_info["parameters"]:
         display_params = {
           k: v for k, v in tool_info["parameters"].items() if not k.startswith("_")
@@ -230,11 +226,9 @@ class SelectableToolCatalog:
         required = tool_info["parameters"].get("_required", [])
 
         if display_params:
-          with ui.column().classes("w-full mt-2 pt-2 border-t border-gray-200"):
-            with ui.row().classes("items-center gap-1 mb-2"):
-              ui.icon("data_object", size="xs").classes("text-gray-500")
-              ui.label("Parameters").classes("text-xs font-medium text-gray-600")
-
+          with ui.expansion("Parameters", icon="data_object", value=False).classes(
+            "w-full mt-2"
+          ):
             for param_name, param_info in display_params.items():
               is_required = param_name in required
               req_badge = "*" if is_required else ""
@@ -262,9 +256,10 @@ class SelectableToolCatalog:
 
     ui.label("Select a tool:").classes("text-sm text-gray-600 mb-2")
 
-    with ui.column().classes("w-full gap-2"):
-      for tool_info in self._tool_infos:
-        self._render_tool_card(tool_info)
+    with ui.scroll_area().style("max-height: 300px").classes("w-full"):
+      with ui.column().classes("w-full gap-2"):
+        for tool_info in self._tool_infos:
+          self._render_tool_card(tool_info)
 
 
 def render_tool_catalog(
