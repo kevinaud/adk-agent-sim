@@ -1,0 +1,88 @@
+﻿2025-12-25T15:51:16.3756379Z ##[group]Run actions/checkout@v4
+2025-12-25T15:51:16.3757755Z with:
+2025-12-25T15:51:16.3758555Z   repository: kevinaud/adk-agent-sim
+2025-12-25T15:51:16.3759910Z   token: ***
+2025-12-25T15:51:16.3760656Z   ssh-strict: true
+2025-12-25T15:51:16.3761447Z   ssh-user: git
+2025-12-25T15:51:16.3762256Z   persist-credentials: true
+2025-12-25T15:51:16.3763162Z   clean: true
+2025-12-25T15:51:16.3763978Z   sparse-checkout-cone-mode: true
+2025-12-25T15:51:16.3765194Z   fetch-depth: 1
+2025-12-25T15:51:16.3766019Z   fetch-tags: false
+2025-12-25T15:51:16.3766835Z   show-progress: true
+2025-12-25T15:51:16.3767680Z   lfs: false
+2025-12-25T15:51:16.3768426Z   submodules: false
+2025-12-25T15:51:16.3769249Z   set-safe-directory: true
+2025-12-25T15:51:16.3770563Z ##[endgroup]
+2025-12-25T15:51:16.4856038Z Syncing repository: kevinaud/adk-agent-sim
+2025-12-25T15:51:16.4858785Z ##[group]Getting Git version info
+2025-12-25T15:51:16.4860243Z Working directory is '/home/runner/work/adk-agent-sim/adk-agent-sim'
+2025-12-25T15:51:16.4862334Z [command]/usr/bin/git version
+2025-12-25T15:51:16.4983453Z git version 2.52.0
+2025-12-25T15:51:16.5011007Z ##[endgroup]
+2025-12-25T15:51:16.5025859Z Temporarily overriding HOME='/home/runner/work/_temp/82aba27b-ccc2-49a6-9c61-998d86c151a3' before making global git config changes
+2025-12-25T15:51:16.5028726Z Adding repository directory to the temporary git global config as a safe directory
+2025-12-25T15:51:16.5031664Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/adk-agent-sim/adk-agent-sim
+2025-12-25T15:51:16.5070518Z Deleting the contents of '/home/runner/work/adk-agent-sim/adk-agent-sim'
+2025-12-25T15:51:16.5073597Z ##[group]Initializing the repository
+2025-12-25T15:51:16.5078348Z [command]/usr/bin/git init /home/runner/work/adk-agent-sim/adk-agent-sim
+2025-12-25T15:51:16.5259855Z hint: Using 'master' as the name for the initial branch. This default branch name
+2025-12-25T15:51:16.5262238Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2025-12-25T15:51:16.5265695Z hint: to use in all of your new repositories, which will suppress this warning,
+2025-12-25T15:51:16.5268979Z hint: call:
+2025-12-25T15:51:16.5270446Z hint:
+2025-12-25T15:51:16.5272503Z hint: 	git config --global init.defaultBranch <name>
+2025-12-25T15:51:16.5274687Z hint:
+2025-12-25T15:51:16.5276552Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2025-12-25T15:51:16.5279785Z hint: 'development'. The just-created branch can be renamed via this command:
+2025-12-25T15:51:16.5282245Z hint:
+2025-12-25T15:51:16.5283438Z hint: 	git branch -m <name>
+2025-12-25T15:51:16.5285066Z hint:
+2025-12-25T15:51:16.5286590Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2025-12-25T15:51:16.5288685Z Initialized empty Git repository in /home/runner/work/adk-agent-sim/adk-agent-sim/.git/
+2025-12-25T15:51:16.5292949Z [command]/usr/bin/git remote add origin https://github.com/kevinaud/adk-agent-sim
+2025-12-25T15:51:16.5320378Z ##[endgroup]
+2025-12-25T15:51:16.5322866Z ##[group]Disabling automatic garbage collection
+2025-12-25T15:51:16.5325274Z [command]/usr/bin/git config --local gc.auto 0
+2025-12-25T15:51:16.5355120Z ##[endgroup]
+2025-12-25T15:51:16.5357393Z ##[group]Setting up auth
+2025-12-25T15:51:16.5363031Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2025-12-25T15:51:16.5395995Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2025-12-25T15:51:16.5785221Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2025-12-25T15:51:16.5818181Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2025-12-25T15:51:16.6039526Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2025-12-25T15:51:16.6080673Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2025-12-25T15:51:16.6300592Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2025-12-25T15:51:16.6345242Z ##[endgroup]
+2025-12-25T15:51:16.6346642Z ##[group]Fetching the repository
+2025-12-25T15:51:16.6354013Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +84567d4703d8bad9cbca61206206aab30396d92b:refs/remotes/pull/4/merge
+2025-12-25T15:51:17.1036631Z From https://github.com/kevinaud/adk-agent-sim
+2025-12-25T15:51:17.1039343Z  * [new ref]         84567d4703d8bad9cbca61206206aab30396d92b -> pull/4/merge
+2025-12-25T15:51:17.1073771Z ##[endgroup]
+2025-12-25T15:51:17.1076119Z ##[group]Determining the checkout info
+2025-12-25T15:51:17.1078028Z ##[endgroup]
+2025-12-25T15:51:17.1081050Z [command]/usr/bin/git sparse-checkout disable
+2025-12-25T15:51:17.1121489Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2025-12-25T15:51:17.1146704Z ##[group]Checking out the ref
+2025-12-25T15:51:17.1149627Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/4/merge
+2025-12-25T15:51:17.1313328Z Note: switching to 'refs/remotes/pull/4/merge'.
+2025-12-25T15:51:17.1314964Z 
+2025-12-25T15:51:17.1316140Z You are in 'detached HEAD' state. You can look around, make experimental
+2025-12-25T15:51:17.1318540Z changes and commit them, and you can discard any commits you make in this
+2025-12-25T15:51:17.1320271Z state without impacting any branches by switching back to a branch.
+2025-12-25T15:51:17.1321450Z 
+2025-12-25T15:51:17.1322428Z If you want to create a new branch to retain commits you create, you may
+2025-12-25T15:51:17.1324015Z do so (now or later) by using -c with the switch command. Example:
+2025-12-25T15:51:17.1325336Z 
+2025-12-25T15:51:17.1325862Z   git switch -c <new-branch-name>
+2025-12-25T15:51:17.1326606Z 
+2025-12-25T15:51:17.1326964Z Or undo this operation with:
+2025-12-25T15:51:17.1327548Z 
+2025-12-25T15:51:17.1328182Z   git switch -
+2025-12-25T15:51:17.1328645Z 
+2025-12-25T15:51:17.1329385Z Turn off this advice by setting config variable advice.detachedHead to false
+2025-12-25T15:51:17.1330471Z 
+2025-12-25T15:51:17.1331675Z HEAD is now at 84567d4 Merge 6afcdae670a041d346c5ddfcaf5cb6e5b11d9f87 into 8561f8726843406ef6aea2292dd697a07fae6c68
+2025-12-25T15:51:17.1335350Z ##[endgroup]
+2025-12-25T15:51:17.1360002Z [command]/usr/bin/git log -1 --format=%H
+2025-12-25T15:51:17.1382031Z 84567d4703d8bad9cbca61206206aab30396d92b
