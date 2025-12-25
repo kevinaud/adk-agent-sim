@@ -23,6 +23,7 @@ dependencies = [
 [project.scripts]
 demo = "adk_agent_sim.demo.demo:app"
 demo-server = "adk_agent_sim.demo.mcp_servers.demo_server:run_server"
+init-demo-db = "adk_agent_sim.demo.agents.sqlite_agent.init_demo_db:init_db"
 
 [tool.setuptools]
 packages = ["adk_agent_sim"]
@@ -72,5 +73,8 @@ dev = [
     "ruff>=0.14.7",
     "pytest>=9.0.1",
     "pytest-asyncio>=1.3.0",
+    "pytest-xdist>=3.5.0",
     "specify-cli",
+    "pytest-playwright>=0.7.2",
+    "mcp-server-sqlite>=2025.4.25",
 ]

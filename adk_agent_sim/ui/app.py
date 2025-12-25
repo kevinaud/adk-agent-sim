@@ -29,18 +29,54 @@ class SimulatorApp:
     @ui.page("/")
     async def index() -> None:  # pyright: ignore[reportUnusedFunction]
       """Agent selection page."""
-      from adk_agent_sim.ui.pages.agent_select import render_agent_select_page
+      from adk_agent_sim.ui.pages.agent_select import (
+        AgentInfo,
+        render_agent_select_page,
+      )
 
-      agent_names = list(self.controller.available_agents.keys())
+      # Build list of agent info with names and descriptions
+      agents_info: list[AgentInfo] = []
+      for name, agent in self.controller.available_agents.items():
+        agents_info.append(
+          AgentInfo(
+            name=name,
+            description=agent.description,
+          )
+        )
 
       async def on_select(agent_name: str) -> None:
         # Create session and select agent
         self.controller.create_session()
-        await self.controller.select_agent(agent_name)
-        # Navigate to simulation page
-        ui.navigate.to("/simulate")
+        try:
+          await self.controller.select_agent(agent_name)
+          # Navigate to simulation page
+          ui.navigate.to("/simulate")
+        except (ConnectionError, BaseExceptionGroup) as e:
+          # Show user-friendly error for connection failures
+          # BaseExceptionGroup can come from anyio/asyncio MCP client
+          error_msg = str(e)
+          if isinstance(e, BaseExceptionGroup):
+            # Extract first meaningful error
+            msgs = [str(exc) for exc in e.exceptions[:2]]
+            error_msg = "; ".join(msgs)
+          ui.notify(
+            f"Failed to connect: {error_msg}",
+            type="negative",
+            position="top",
+            close_button=True,
+            timeout=0,  # Don't auto-close
+          )
+        except Exception as e:
+          # Show generic error for other failures
+          ui.notify(
+            f"Failed to start simulation: {e}",
+            type="negative",
+            position="top",
+            close_button=True,
+            timeout=0,
+          )
 
-      render_agent_select_page(agent_names, on_select)  # type: ignore
+      render_agent_select_page(agents_info, on_select)
 
     @ui.page("/simulate")
     async def simulate() -> None:  # pyright: ignore[reportUnusedFunction]

@@ -55,6 +55,8 @@ class ToolExecutor:
     self._timer_task: asyncio.Task[None] | None = None
     self._execute_button: ui.button | None = None
     self._cancel_button: ui.button | None = None
+    self._spinner: ui.spinner | None = None
+    self._executing_label: ui.label | None = None
 
   def render(self) -> None:
     """Render the tool executor component."""
@@ -77,6 +79,13 @@ class ToolExecutor:
         ui.label("No parameters required").classes("text-gray-500 italic")
 
       ui.separator()
+
+      # Execution status row (hidden initially)
+      with ui.row().classes("w-full items-center gap-2 py-2") as status_row:
+        self._spinner = ui.spinner("dots", size="sm")
+        self._executing_label = ui.label("Executing...").classes("text-gray-600")
+      status_row.set_visibility(False)
+      self._status_row = status_row
 
       # Action row with timer
       with ui.row().classes("w-full items-center justify-between mt-4"):
@@ -123,11 +132,13 @@ class ToolExecutor:
         )
         return
 
-    # Show cancel button, hide execute
+    # Show executing state
     if self._execute_button:
       self._execute_button.set_visibility(False)
     if self._cancel_button:
       self._cancel_button.set_visibility(True)
+    if hasattr(self, "_status_row") and self._status_row:
+      self._status_row.set_visibility(True)
 
     # Start timer
     self._start_timer()
@@ -142,6 +153,8 @@ class ToolExecutor:
         self._execute_button.set_visibility(True)
       if self._cancel_button:
         self._cancel_button.set_visibility(False)
+      if hasattr(self, "_status_row") and self._status_row:
+        self._status_row.set_visibility(False)
 
   def _handle_cancel(self) -> None:
     """Handle cancel button click."""

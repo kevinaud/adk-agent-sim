@@ -3,26 +3,23 @@
 from __future__ import annotations
 
 import json
-from typing import TYPE_CHECKING
 
 from nicegui import ui
 
+from adk_agent_sim.models.history import (
+  FinalResponse,
+  HistoryEntry,
+  ToolCall,
+  ToolError,
+  ToolOutput,
+  UserQuery,
+)
 from adk_agent_sim.ui.styles import (
   HISTORY_BORDER_COLORS,
   HISTORY_COLORS,
   HISTORY_ENTRY_STYLE,
   HISTORY_PANEL_HEIGHT,
 )
-
-if TYPE_CHECKING:
-  from adk_agent_sim.models.history import (
-    FinalResponse,
-    HistoryEntry,
-    ToolCall,
-    ToolError,
-    ToolOutput,
-    UserQuery,
-  )
 
 
 class HistoryPanel:

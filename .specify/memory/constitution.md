@@ -2,21 +2,21 @@
 ================================================================================
 SYNC IMPACT REPORT
 ================================================================================
-Version Change: 1.0.0 → 1.1.0 (Dev Container Emphasis)
+Version Change: 1.1.0 → 1.2.0 (Screenshot-Verified UX)
 
 Added Sections:
-- Principle VI: Hermetic Development Environment
+- Principle IX: Screenshot-Verified UX Changes
 
 Modified Sections:
-- Principle VII (Renumbered from VI): Removed environment bullet
-- Principle VIII (Renumbered from VII): Updated reference to Principles I–VII
+- Quality Gates: Added Gate #7 for screenshot verification
 
 Templates Requiring Updates:
 - .specify/templates/plan-template.md: ✅ Compatible
 - .specify/templates/spec-template.md: ✅ Compatible
-- .specify/templates/tasks-template.md: ✅ Compatible
+- .specify/templates/tasks-template.md: ⚠️ UX features should include screenshot tasks
 
-Follow-up TODOs: None
+Follow-up TODOs:
+- Update 003-ux-modernization tasks.md to include screenshot capture tasks
 ================================================================================
 -->
 
@@ -122,6 +122,21 @@ The interface must allow users to control Python agent instances provided via th
 
 **Rationale**: Premature commitment to a UI framework limits exploration; the optimal choice depends on detailed UX research.
 
+### IX. Screenshot-Verified UX Changes
+
+All UI/UX changes MUST be verified through screenshot capture and human review.
+
+- **Screenshot Tests**: Any feature that modifies the user interface MUST include screenshot tests that capture the visual state of affected screens.
+- **Baseline Storage**: Screenshots MUST be stored in `docs/screenshots/` with descriptive filenames (e.g., `agent-selection.png`, `tool-form.png`).
+- **Human Review**: Before merging UX changes, captured screenshots MUST be reviewed by a human to verify visual correctness and design consistency.
+- **Regression Detection**: Screenshot tests SHOULD fail if the UI changes unexpectedly, requiring explicit approval of visual changes.
+- **Coverage**: At minimum, screenshots MUST capture:
+  - Each distinct page/view in its default state.
+  - Key interaction states (e.g., loading, error, success).
+  - Any new UI components introduced.
+
+**Rationale**: Automated screenshot testing catches visual regressions that unit tests miss, and human review ensures subjective design quality standards are met.
+
 ## Technology Stack
 
 | Category | Requirement |
@@ -138,11 +153,16 @@ The interface must allow users to control Python agent instances provided via th
 
 All code changes MUST pass these gates before merge:
 
-1. **Formatting**: `ruff format --check` passes.
-2. **Linting**: `ruff check` passes with zero errors.
-3. **Type Checking**: `pyright` in strict mode passes with zero errors.
-4. **Tests**: `pytest` passes with no failures.
-5. **Dev Container**: Changes must not break the dev container build.
+1. **Quality Script**: `./scripts/check_quality.sh` passes (runs ruff check, ruff format, and pyright).
+2. **Formatting**: `ruff format --check` passes.
+3. **Linting**: `ruff check` passes with zero errors.
+4. **Type Checking**: `pyright` in strict mode passes with zero errors.
+5. **Tests**: `pytest` passes with no failures.
+6. **Dev Container**: Changes must not break the dev container build.
+7. **Screenshot Review** (UX changes only): Updated screenshots in `docs/screenshots/` have been captured and reviewed.
+
+> **Note**: Gate #1 (`./scripts/check_quality.sh`) encompasses Gates #2–#4. Running the script is the canonical way to verify code quality.
+> **Note**: Gate #7 applies only to PRs that modify UI components or pages.
 
 ## Governance
 
@@ -158,4 +178,4 @@ This Constitution is the supreme authority for project decisions. All specificat
 - **Compliance Review**: All PRs MUST verify adherence to Constitution principles.
 - **Complexity Justification**: Any deviation from "simplest solution" MUST be documented with rationale.
 
-**Version**: 1.0.0 | **Ratified**: 2025-12-23 | **Last Amended**: 2025-12-23
+**Version**: 1.2.0 | **Ratified**: 2025-12-23 | **Last Amended**: 2025-12-24

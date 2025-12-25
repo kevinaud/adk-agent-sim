@@ -5,6 +5,42 @@
 
 ## Entities
 
+### SimulatedAgentConfig
+
+Configuration for an agent in the simulator.
+
+```python
+from pathlib import Path
+from dataclasses import dataclass
+from google.adk.agents import Agent
+
+@dataclass
+class SimulatedAgentConfig:
+  """Configuration for a simulated agent."""
+  
+  name: str
+  """Display name for the agent (shown in UI)."""
+  
+  agent: Agent
+  """The ADK Agent instance to simulate."""
+  
+  eval_set_path: str | Path
+  """File path where completed eval cases should be exported.
+  
+  - If relative, resolved relative to current working directory.
+  - If absolute, used as-is.
+  - File is created if it doesn't exist.
+  - New eval cases are appended to existing eval cases.
+  """
+  
+  def resolve_eval_set_path(self) -> Path:
+    """Resolve eval_set_path to absolute Path."""
+    path = Path(self.eval_set_path)
+    if path.is_absolute():
+      return path
+    return Path.cwd() / path
+```
+
 ### SimulationSession
 
 Represents a single simulation run from start to export.
@@ -29,15 +65,16 @@ class SimulationSession(BaseModel):
   model_config = {"arbitrary_types_allowed": True}
   
   session_id: str = Field(description="Unique session identifier")
-  agent_name: str = Field(description="Display name of selected agent")
-  agent: Agent = Field(description="Reference to ADK Agent instance")
+  agent_config: "SimulatedAgentConfig" = Field(description="Configuration for selected agent")
+  agent_name: str = Field(description="Display name of selected agent (from config)")
+  agent: Agent = Field(description="Reference to ADK Agent instance (from config)")
   tools: list[BaseTool] = Field(default_factory=list, description="Cached tools from agent")
   state: SessionState = Field(default=SessionState.SELECTING_AGENT)
   history: list["HistoryEntry"] = Field(default_factory=list)
   start_timestamp: float = Field(description="Session start time (epoch)")
   
   # For ADK context construction
-  adk_session: Any = Field(default=None, description="ADK Session for ToolContext")
+  adk_session: Any = Field(default=None, description="ADK Session for ToolContext"))
 ```
 
 ### HistoryEntry (Discriminated Union)
@@ -138,16 +175,63 @@ class GoldenTraceBuilder:
     iso_time = time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(self.session.start_timestamp))
     return f"{snake_name}_{iso_time}"
   
-  def _extract_user_query(self) -> str:
-    """Find UserQuery in history."""
-    for entry in self.session.history:
-      if isinstance(entry, UserQuery):
-        return entry.content
-    return ""
+  # ... (helper methods unchanged)
+```
+
+### EvalSetWriter
+
+Handles create/append logic for EvalSet files.
+
+```python
+import json
+import time
+import re
+from pathlib import Path
+from google.adk.evaluation.eval_set import EvalSet
+from google.adk.evaluation.eval_case import EvalCase
+
+class EvalSetWriter:
+  """Writes EvalCases to EvalSet files with create/append semantics."""
   
-  def _extract_final_response(self) -> str | None:
-    """Find FinalResponse in history."""
-    for entry in self.session.history:
+  def __init__(self, eval_set_path: Path, agent_name: str):
+    self.eval_set_path = eval_set_path
+    self.agent_name = agent_name
+  
+  def write_eval_case(self, eval_case: EvalCase) -> None:
+    """Append eval_case to EvalSet file, creating if necessary."""
+    if self.eval_set_path.exists():
+      eval_set = self._load_existing()
+      eval_set.eval_cases.append(eval_case)
+    else:
+      eval_set = self._create_new(eval_case)
+    
+    self._write(eval_set)
+  
+  def _load_existing(self) -> EvalSet:
+    """Load existing EvalSet from file."""
+    with open(self.eval_set_path, 'r') as f:
+      data = json.load(f)
+    return EvalSet.model_validate(data)
+  
+  def _create_new(self, first_case: EvalCase) -> EvalSet:
+    """Create new EvalSet with first eval case."""
+    snake_name = re.sub(r'(?<!^)(?=[A-Z])', '_', self.agent_name).lower()
+    snake_name = re.sub(r'[^a-z0-9_]', '_', snake_name)
+    
+    return EvalSet(
+      eval_set_id=f"{snake_name}_evals",
+      name=f"{self.agent_name} Evaluation Set",
+      description=f"Golden traces captured via ADK Agent Simulator for {self.agent_name}",
+      eval_cases=[first_case],
+      creation_timestamp=time.time(),
+    )
+  
+  def _write(self, eval_set: EvalSet) -> None:
+    """Write EvalSet to file, creating parent directories if needed."""
+    self.eval_set_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(self.eval_set_path, 'w') as f:
+      f.write(eval_set.model_dump_json(indent=2))
+```
       if isinstance(entry, FinalResponse):
         return entry.content
     return None
@@ -190,8 +274,14 @@ class GoldenTraceBuilder:
 ## Relationships
 
 ```
-SimulationSession
+SimulatedAgentConfig
+├── name: str
 ├── agent: Agent (1:1)
+└── eval_set_path: Path
+
+SimulationSession
+├── agent_config: SimulatedAgentConfig (1:1)
+├── agent: Agent (1:1, from config)
 ├── tools: list[BaseTool] (1:N, cached)
 ├── history: list[HistoryEntry] (1:N, ordered)
 │   ├── UserQuery (1 per session)
@@ -209,6 +299,15 @@ GoldenTraceBuilder
         └── intermediate_data: IntermediateData
             ├── tool_uses: list[FunctionCall]
             └── tool_responses: list[FunctionResponse]
+
+EvalSetWriter
+├── reads/writes → EvalSet file (JSON)
+│   ├── eval_set_id: str
+│   ├── name: str
+│   ├── description: str
+│   ├── eval_cases: list[EvalCase]
+│   └── creation_timestamp: float
+└── appends → EvalCase (from GoldenTraceBuilder)
 ```
 
 ## State Transitions
@@ -231,9 +330,13 @@ SELECTING_AGENT ──[agent selected]──> AWAITING_QUERY
 
 | Entity | Field | Constraint |
 |--------|-------|------------|
+| SimulatedAgentConfig | name | Non-empty string |
+| SimulatedAgentConfig | agent | Valid ADK Agent instance |
+| SimulatedAgentConfig | eval_set_path | Valid file path (relative or absolute) |
 | SimulationSession | agent_name | Non-empty string |
 | SimulationSession | history | Must start with `UserQuery` when state >= ACTIVE |
 | SimulationSession | history | Must end with `FinalResponse` when state == COMPLETED |
 | ToolCall | call_id | Unique within session |
 | ToolOutput/ToolError | call_id | Must match existing `ToolCall.call_id` |
 | GoldenTraceBuilder | build() | Only valid when session.state == COMPLETED |
+| EvalSetWriter | write_eval_case() | eval_case must have valid eval_id |

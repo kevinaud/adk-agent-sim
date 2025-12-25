@@ -8,17 +8,22 @@ from nicegui import ui
 
 from adk_agent_sim.models.session import SessionState
 from adk_agent_sim.ui.components.action_panel import render_action_panel
-from adk_agent_sim.ui.components.history_panel import HistoryPanel, render_history_panel
+from adk_agent_sim.ui.components.event_stream import EventStream
 from adk_agent_sim.ui.components.system_prompt import render_system_prompt
 from adk_agent_sim.ui.components.tool_executor import render_tool_executor
-from adk_agent_sim.ui.styles import PRIMARY_BUTTON_STYLE, SUCCESS_BUTTON_STYLE
+from adk_agent_sim.ui.styles import (
+  CONTROL_PANEL_CLASSES,
+  LAYOUT,
+  PRIMARY_BUTTON_STYLE,
+  SUCCESS_BUTTON_STYLE,
+)
 
 if TYPE_CHECKING:
   from adk_agent_sim.controller import SimulationController
 
 
 class SimulationPage:
-  """Main page for running the agent simulation."""
+  """Main page for running the agent simulation with 2/3 + 1/3 layout."""
 
   def __init__(self, controller: SimulationController) -> None:
     """
@@ -28,59 +33,83 @@ class SimulationPage:
       controller: The simulation controller
     """
     self.controller = controller
-    self._history_panel: HistoryPanel | None = None
-    self._tool_executor_container: ui.column | None = None
+    self._event_stream: EventStream | None = None
+    self._sidebar_content: ui.column | None = None
     self._selected_tool: str | None = None
-    self._main_content: ui.column | None = None
+    self._is_executing: bool = False
+    self._state_badge_refresh: Any | None = None  # Function to refresh state badge
 
   async def render(self) -> None:
     """Render the simulation page."""
     await self.render_async()
 
   async def render_async(self) -> None:
-    """Render the simulation page."""
+    """Render the simulation page with new layout."""
     session = self.controller.current_session
     if session is None:
       ui.label("No active session").classes("text-red-500")
       return
 
-    with ui.column().classes("w-full h-screen"):
-      # Header
-      self._render_header(session.agent_name)
+    # Header
+    self._render_header(session.agent_name)
 
-      # Main content
-      with ui.row().classes("w-full flex-grow gap-4 p-4"):
-        # Left side: History
-        with ui.column().classes("w-1/2"):
-          self._history_panel = render_history_panel(session.history)
+    # Main layout container
+    with ui.column().classes("w-full h-screen pt-16"):
+      # System prompt header (expandable, collapsed by default)
+      with ui.column().classes("w-full px-4 pt-4"):
+        instruction = await self.controller.get_system_instruction()
+        render_system_prompt(instruction, session.agent_name, expanded=False)
 
-        # Right side: Actions and tool executor
-        with ui.column().classes("w-1/2"):
-          # System prompt (collapsible)
-          instruction = await self.controller.get_system_instruction()
-          render_system_prompt(instruction, session.agent_name)
+      # Main content: 2/3 event stream + 1/3 sidebar
+      with ui.row().classes("w-full flex-grow gap-0 px-4 pb-4"):
+        # Left: Event Stream (2/3 width)
+        with ui.column().classes(f"{LAYOUT['main_content_width']} h-full pr-4"):
+          self._event_stream = EventStream(
+            history=session.history,
+            is_loading=self._is_executing,
+            loading_tool=self._selected_tool if self._is_executing else None,
+          )
+          self._event_stream.render()
 
-          self._main_content = ui.column().classes("w-full")
-          with self._main_content:
-            self._render_main_content()
+        # Right: Control Panel Sidebar (1/3 width)
+        with ui.column().classes(f"{LAYOUT['sidebar_width']} {CONTROL_PANEL_CLASSES}"):
+          self._sidebar_content = ui.column().classes("w-full h-full")
+          with self._sidebar_content:
+            self._render_sidebar_content()
 
   def _render_header(self, agent_name: str) -> None:
-    """Render the page header."""
+    """Render the page header with agent name and session state."""
     with ui.header().classes("bg-blue-700 text-white"):
       with ui.row().classes("w-full items-center justify-between px-4"):
-        ui.label(f"Simulating: {agent_name}").classes("text-xl font-semibold")
+        # Left: Agent name and icon
+        with ui.row().classes("items-center gap-2"):
+          ui.icon("smart_toy", size="sm")
+          ui.label(f"Simulating: {agent_name}").classes("text-xl font-semibold")
 
-        session = self.controller.current_session
-        if session:
-          state_badge = {
-            SessionState.AWAITING_QUERY: ("Awaiting Query", "yellow"),
-            SessionState.ACTIVE: ("Active", "green"),
-            SessionState.COMPLETED: ("Completed", "blue"),
-          }.get(session.state, ("Unknown", "gray"))
-          ui.badge(state_badge[0], color=state_badge[1])
+        # Right: Session state badge (refreshable)
+        @ui.refreshable  # type: ignore[reportArgumentType]
+        def render_state_badge() -> None:
+          session = self.controller.current_session
+          if session:
+            state_config = {
+              SessionState.AWAITING_QUERY: (
+                "Awaiting Query",
+                "yellow",
+                "text-yellow-900",
+              ),
+              SessionState.ACTIVE: ("Active", "green", "text-green-900"),
+              SessionState.COMPLETED: ("Completed", "blue", "text-blue-900"),
+            }
+            label, color, text_class = state_config.get(
+              session.state, ("Unknown", "gray", "text-gray-900")
+            )
+            ui.badge(label, color=color).classes(f"{text_class} font-semibold")
 
-  def _render_main_content(self) -> None:
-    """Render the main content based on session state."""
+        render_state_badge()
+        self._state_badge_refresh = render_state_badge.refresh  # Store refresh function
+
+  def _render_sidebar_content(self) -> None:
+    """Render the sidebar content based on session state."""
     session = self.controller.current_session
     if session is None:
       return
@@ -96,7 +125,7 @@ class SimulationPage:
       self._render_completed()
 
   def _render_query_input(self) -> None:
-    """Render the initial query input form."""
+    """Render the initial query input form in the sidebar."""
     session = self.controller.current_session
     if session is None:
       return
@@ -116,9 +145,9 @@ class SimulationPage:
 
       if has_input_schema:
         # Render structured form for input schema
-        ui.label(
-          "This agent expects structured input. Fill in the form below."
-        ).classes("text-gray-600 mb-4")
+        ui.label("This agent expects structured input.").classes(
+          "text-gray-600 mb-4 text-sm"
+        )
 
         from adk_agent_sim.ui.components.schema_form import (
           pydantic_to_schema,
@@ -126,7 +155,6 @@ class SimulationPage:
           validate_required_fields,
         )
 
-        # Convert Pydantic model to Schema (input_schema is not None here)
         assert input_schema is not None
         schema = pydantic_to_schema(input_schema)
         form_values: dict[str, Any] = {}
@@ -142,7 +170,6 @@ class SimulationPage:
           if errors:
             ui.notify(f"Validation errors: {', '.join(errors)}", type="warning")
             return
-          # Convert form values to JSON string for storage
           import json
 
           query_str = json.dumps(form_values)
@@ -153,18 +180,18 @@ class SimulationPage:
           "Start Session",
           icon="play_arrow",
           on_click=on_start_structured,
-        ).style(PRIMARY_BUTTON_STYLE)
+        ).classes("w-full mt-4").style(PRIMARY_BUTTON_STYLE)
       else:
         # Plain text input
-        ui.label("Provide the initial query that the agent will process.").classes(
-          "text-gray-600 mb-4"
+        ui.label("Provide the initial query for the agent.").classes(
+          "text-gray-600 mb-4 text-sm"
         )
 
         query_input = ui.textarea(
           label="User Query",
           placeholder="Enter the user's question or request...",
         ).classes("w-full mb-4")
-        query_input.props("rows=3")
+        query_input.props("rows=4")
 
         async def on_start() -> None:
           if query_input.value:
@@ -177,10 +204,10 @@ class SimulationPage:
           "Start Session",
           icon="play_arrow",
           on_click=on_start,
-        ).style(PRIMARY_BUTTON_STYLE)
+        ).classes("w-full").style(PRIMARY_BUTTON_STYLE)
 
   def _render_action_panel(self) -> None:
-    """Render the action selection panel."""
+    """Render the action selection panel in the sidebar."""
     session = self.controller.current_session
     if session is None:
       return
@@ -204,7 +231,7 @@ class SimulationPage:
     )
 
   def _render_tool_executor(self) -> None:
-    """Render the tool executor for the selected tool."""
+    """Render the tool executor for the selected tool in the sidebar."""
     if not self._selected_tool:
       return
 
@@ -214,7 +241,7 @@ class SimulationPage:
     ui.button(
       "← Back to Actions",
       on_click=self._clear_tool_selection,
-    ).props("flat")
+    ).props("flat dense").classes("mb-4")
 
     render_tool_executor(
       tool_name=self._selected_tool,
@@ -225,35 +252,34 @@ class SimulationPage:
     )
 
   def _render_completed(self) -> None:
-    """Render the completed session view."""
+    """Render the completed session view in the sidebar."""
     with ui.card().classes("w-full"):
-      ui.label("Session Completed").classes("text-lg font-semibold mb-4")
-      ui.icon("check_circle", color="green").classes("text-4xl mb-4")
+      with ui.column().classes("w-full items-center"):
+        ui.icon("check_circle", color="green", size="xl").classes("mb-4")
+        ui.label("Session Completed").classes("text-lg font-semibold mb-2")
 
-      ui.label(
-        "The simulation session has been completed. "
-        "You can now export the Golden Trace."
-      ).classes("text-gray-600 mb-4")
+        ui.label("Export the Golden Trace to save this simulation.").classes(
+          "text-gray-600 text-sm text-center mb-4"
+        )
 
-      async def on_export() -> None:
-        try:
-          json_str = self.controller.export_trace()
-          session = self.controller.current_session
-          session_id = session.session_id if session else "unknown"
-          # Trigger download
-          ui.download(
-            json_str.encode("utf-8"),
-            filename=f"golden_trace_{session_id}.json",
-          )
-          ui.notify("Golden Trace exported!", type="positive")
-        except Exception as e:
-          ui.notify(f"Export failed: {e}", type="negative")
+        async def on_export() -> None:
+          try:
+            json_str = self.controller.export_trace()
+            session = self.controller.current_session
+            session_id = session.session_id if session else "unknown"
+            ui.download(
+              json_str.encode("utf-8"),
+              filename=f"golden_trace_{session_id}.json",
+            )
+            ui.notify("Golden Trace exported!", type="positive")
+          except Exception as e:
+            ui.notify(f"Export failed: {e}", type="negative")
 
-      ui.button(
-        "Export Golden Trace",
-        icon="download",
-        on_click=on_export,
-      ).style(SUCCESS_BUTTON_STYLE)
+        ui.button(
+          "Export Golden Trace",
+          icon="download",
+          on_click=on_export,
+        ).classes("w-full").style(SUCCESS_BUTTON_STYLE)
 
   def _on_tool_select(self, tool_name: str) -> None:
     """Handle tool selection."""
@@ -266,8 +292,12 @@ class SimulationPage:
     self._refresh_ui()
 
   async def _on_execute_tool(self, tool_name: str, arguments: dict[str, Any]) -> None:
-    """Handle tool execution."""
+    """Handle tool execution with loading state."""
     try:
+      # Set loading state
+      self._is_executing = True
+      self._refresh_event_stream()
+
       result = await self.controller.execute_tool(tool_name, arguments)
       if result.success:
         ui.notify(f"Tool '{tool_name}' executed successfully", type="positive")
@@ -277,6 +307,7 @@ class SimulationPage:
       ui.notify(f"Execution failed: {e}", type="negative")
     finally:
       self._selected_tool = None
+      self._is_executing = False
       self._refresh_ui()
 
   def _on_cancel_tool(self) -> None:
@@ -292,18 +323,30 @@ class SimulationPage:
     except Exception as e:
       ui.notify(f"Failed to submit response: {e}", type="negative")
 
+  def _refresh_event_stream(self) -> None:
+    """Refresh just the event stream component."""
+    session = self.controller.current_session
+    if session and self._event_stream:
+      self._event_stream.refresh(
+        history=session.history,
+        is_loading=self._is_executing,
+        loading_tool=self._selected_tool if self._is_executing else None,
+      )
+
   def _refresh_ui(self) -> None:
     """Refresh the UI after state changes."""
-    # Refresh history panel
-    session = self.controller.current_session
-    if session and self._history_panel:
-      self._history_panel.refresh(session.history)
+    # Refresh state badge
+    if self._state_badge_refresh:
+      self._state_badge_refresh()  # type: ignore[reportUnknownMemberType]
 
-    # Refresh main content
-    if self._main_content:
-      self._main_content.clear()
-      with self._main_content:
-        self._render_main_content()
+    # Refresh event stream
+    self._refresh_event_stream()
+
+    # Refresh sidebar content
+    if self._sidebar_content:
+      self._sidebar_content.clear()
+      with self._sidebar_content:
+        self._render_sidebar_content()
 
 
 async def render_simulation_page(controller: SimulationController) -> SimulationPage:

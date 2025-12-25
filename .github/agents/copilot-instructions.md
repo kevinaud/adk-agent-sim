@@ -3,6 +3,14 @@
 Auto-generated from all feature plans. Last updated: 2025-12-23
 
 ## Active Technologies
+- Python 3.14+ + pytest, pytest-playwright, playwright (002-e2e-test-suite)
+- N/A (ephemeral test sessions) (002-e2e-test-suite)
+- Python 3.14+ + pytest, pytest-playwright, playwright, nicegui (002-e2e-test-suite)
+- N/A (ephemeral session state only) (002-e2e-test-suite)
+- Python 3.14+ + NiceGUI 2.0+ (includes Quasar/Vue, Tailwind CSS) (003-ux-modernization)
+- N/A (in-memory session only) (003-ux-modernization)
+- Python 3.14+ + `nicegui` (UI), Tailwind CSS (styling) (003-ux-modernization)
+- N/A (ephemeral in-memory sessions only) (003-ux-modernization)
 
 - Python 3.14+ + `nicegui` (UI), `google-adk` (Agent framework), `pydantic` (data models) (001-simulator-run-spec)
 
@@ -22,8 +30,10 @@ cd src [ONLY COMMANDS FOR ACTIVE TECHNOLOGIES][ONLY COMMANDS FOR ACTIVE TECHNOLO
 Python 3.14+: Follow standard conventions
 
 ## Recent Changes
+- 003-ux-modernization: Added Python 3.14+ + `nicegui` (UI), Tailwind CSS (styling)
+- 003-ux-modernization: Added Python 3.14+ + NiceGUI 2.0+ (includes Quasar/Vue, Tailwind CSS)
+- 002-e2e-test-suite: Added Python 3.14+ + pytest, pytest-playwright, playwright, nicegui
 
-- 001-simulator-run-spec: Added Python 3.14+ + `nicegui` (UI), `google-adk` (Agent framework), `pydantic` (data models)
 
 <!-- MANUAL ADDITIONS START -->
 <!-- MANUAL ADDITIONS END -->

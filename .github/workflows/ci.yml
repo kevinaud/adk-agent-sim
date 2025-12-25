@@ -10,27 +10,31 @@ jobs:
   check:
     name: Check
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v4
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
         with:
-          version: "latest"
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Set up Python
-        run: uv python install 3.14
-
-      - name: Install dependencies
-        run: uv sync --locked
-
-      - name: Install Prettier
-        run: npm install -g prettier
-
-      - name: Run Quality Checks
-        run: ./scripts/check_quality.sh
-
-      - name: Run Tests
-        run: uv run pytest
+      - name: Run CI in Dev Container
+        uses: devcontainers/ci@v0.3
+        with:
+          imageName: ghcr.io/${{ github.repository }}/devcontainer
+          cacheFrom: ghcr.io/${{ github.repository }}/devcontainer
+          push: filter
+          runCmd: |
+            # Run Quality Checks
+            ./scripts/check_quality.sh
+            # Run Unit and Integration Tests (sequential - async tests need single event loop)
+            uv run pytest tests/unit tests/integration -v
+            # Run E2E Tests (parallel with 4 workers for speed)
+            uv run pytest tests/e2e -n 4 -v

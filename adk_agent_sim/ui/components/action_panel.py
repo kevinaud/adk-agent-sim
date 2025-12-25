@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Any, Awaitable, Callable
 
 from nicegui import ui
 
+from adk_agent_sim.ui.components.tool_catalog import render_selectable_tool_catalog
 from adk_agent_sim.ui.styles import PRIMARY_BUTTON_STYLE, SUCCESS_BUTTON_STYLE
 
 if TYPE_CHECKING:
@@ -63,30 +64,39 @@ class ActionPanel:
           self._render_response_panel()
 
   def _render_tool_panel(self) -> None:
-    """Render the tool selection panel."""
+    """Render the tool selection panel using ToolCatalog."""
     if not self.tools:
       ui.label("No tools available").classes("text-gray-500 italic")
       return
 
-    tool_names = [tool.name for tool in self.tools]
+    # Track selected tool within this panel
+    self._selected_tool = None
 
-    ui.label("Select a tool to execute:").classes("mb-2")
+    @ui.refreshable
+    def render_catalog() -> None:
+      def on_tool_click(tool_name: str) -> None:
+        self._selected_tool = tool_name
+        render_catalog.refresh()
 
-    tool_select = ui.select(
-      options=tool_names,
-      label="Tool",
-      value=tool_names[0] if tool_names else None,
-    ).classes("w-full mb-4")
+      render_selectable_tool_catalog(
+        tools=self.tools,
+        on_tool_select=on_tool_click,
+        selected_tool=self._selected_tool,
+      )
+
+    render_catalog()
 
     def on_select_click() -> None:
-      if tool_select.value:
-        self.on_tool_select(tool_select.value)
+      if self._selected_tool:
+        self.on_tool_select(self._selected_tool)
+      else:
+        ui.notify("Please select a tool first", type="warning")
 
     ui.button(
       "Select Tool",
       icon="arrow_forward",
       on_click=on_select_click,
-    ).style(PRIMARY_BUTTON_STYLE)
+    ).style(PRIMARY_BUTTON_STYLE).classes("mt-4")
 
   def _render_response_panel(self) -> None:
     """Render the final response panel."""

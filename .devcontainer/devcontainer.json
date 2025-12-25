@@ -28,5 +28,6 @@
     }
   },
 
-  "postCreateCommand": "bash .devcontainer/setup-env.sh"
+  "postCreateCommand": "bash .devcontainer/setup-env.sh && uv run playwright install --with-deps",
+  "postStartCommand": "bash .devcontainer/post-start.sh"
 }

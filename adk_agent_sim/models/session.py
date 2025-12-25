@@ -45,6 +45,9 @@ class SimulationSession(BaseModel):
 
   # For ADK context construction
   adk_session: Any = Field(default=None, description="ADK Session for ToolContext")
+  adk_session_service: Any = Field(
+    default=None, description="ADK SessionService for InvocationContext"
+  )
 
   def add_history_entry(self, entry: HistoryEntry) -> None:
     """Add an entry to the session history."""

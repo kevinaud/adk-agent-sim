@@ -65,6 +65,7 @@ class SimulationController:
     Raises:
       KeyError: If agent_name not found
       ValueError: If no session is active
+      ConnectionError: If MCP tools cannot connect to their servers
     """
     if self._session is None:
       raise ValueError("No active session. Call create_session() first.")
@@ -74,8 +75,36 @@ class SimulationController:
 
     agent = self._agents[agent_name]
 
-    # Get tools from agent
-    tools = await agent.canonical_tools()
+    # Get tools from agent - this may connect to MCP servers
+    try:
+      tools = await agent.canonical_tools()
+    except BaseExceptionGroup as eg:
+      # Handle anyio/asyncio exception groups from MCP client
+      # Extract the first meaningful error message
+      error_messages: list[str] = []
+      # pyright: ignore - BaseExceptionGroup.exceptions has complex generic typing
+      for exc in eg.exceptions:  # pyright: ignore[reportUnknownVariableType,reportUnknownMemberType]
+        if isinstance(exc, BaseExceptionGroup):
+          for sub_exc in exc.exceptions:  # pyright: ignore[reportUnknownVariableType,reportUnknownMemberType]
+            error_messages.append(str(sub_exc))
+        else:
+          error_messages.append(str(exc))
+      combined_msg = "; ".join(error_messages[:2])  # Limit to first 2
+      raise ConnectionError(
+        f"Failed to connect to tool server for agent '{agent_name}'. "
+        f"Please ensure all required MCP servers are running. "
+        f"Error: {combined_msg}"
+      ) from eg
+    except Exception as e:
+      # Wrap connection errors for better error messages
+      error_msg = str(e)
+      if "connect" in error_msg.lower() or "connection" in error_msg.lower():
+        raise ConnectionError(
+          f"Failed to connect to tool server for agent '{agent_name}'. "
+          f"Please ensure all required MCP servers are running. "
+          f"Original error: {error_msg}"
+        ) from e
+      raise
 
     # Cache tool declarations for form rendering
     self._tool_declarations = {}

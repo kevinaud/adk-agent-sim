@@ -27,12 +27,27 @@ async def create_invocation_context(
   """
   # Import here to avoid circular imports and allow type checking
   from google.adk.agents.invocation_context import InvocationContext
+  from google.adk.sessions import InMemorySessionService
+
+  # Ensure we have an ADK session - if not, create it
+  if session.adk_session is None:
+    if session.adk_session_service is None:
+      session.adk_session_service = InMemorySessionService()
+
+    session.adk_session = await session.adk_session_service.create_session(
+      app_name="adk_agent_sim",
+      user_id="wizard",
+    )
+
+  # Ensure we have a session service (in case adk_session was set externally)
+  if session.adk_session_service is None:
+    session.adk_session_service = InMemorySessionService()
 
   return InvocationContext(
     invocation_id=f"{session.session_id}_inv",
     agent=session.agent,
     session=session.adk_session,
-    session_service=None,  # type: ignore
+    session_service=session.adk_session_service,
   )
 
 
@@ -82,8 +97,10 @@ async def ensure_adk_session(session: SimulationSession) -> Any:
   # Create an in-memory session for the simulation
   from google.adk.sessions import InMemorySessionService
 
-  session_service = InMemorySessionService()
-  adk_session = await session_service.create_session(
+  if session.adk_session_service is None:
+    session.adk_session_service = InMemorySessionService()
+
+  adk_session = await session.adk_session_service.create_session(
     app_name="adk_agent_sim",
     user_id="wizard",
   )
