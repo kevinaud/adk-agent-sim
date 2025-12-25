@@ -16,7 +16,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Run CI in Dev Container
-        uses: devcontainers/ci-action@v0.3
+        uses: devcontainers/ci@v0.3
         with:
           push: never
           runCmd: |
