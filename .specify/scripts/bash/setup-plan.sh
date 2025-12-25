@@ -4,21 +4,30 @@ set -e
 
 # Parse command line arguments
 JSON_MODE=false
+OUTPUT_NAME=""
 ARGS=()
 
-for arg in "$@"; do
-    case "$arg" in
+while [[ $# -gt 0 ]]; do
+    case "$1" in
         --json) 
-            JSON_MODE=true 
+            JSON_MODE=true
+            shift
+            ;;
+        --output|-o)
+            OUTPUT_NAME="$2"
+            shift 2
             ;;
         --help|-h) 
-            echo "Usage: $0 [--json]"
-            echo "  --json    Output results in JSON format"
-            echo "  --help    Show this help message"
+            echo "Usage: $0 [--json] [--output NAME]"
+            echo "  --json           Output results in JSON format"
+            echo "  --output, -o     Override output filename (default: plan.md)"
+            echo "                   Example: --output plan-fixes.md"
+            echo "  --help           Show this help message"
             exit 0 
             ;;
         *) 
-            ARGS+=("$arg") 
+            ARGS+=("$1")
+            shift
             ;;
     esac
 done
@@ -30,15 +39,22 @@ source "$SCRIPT_DIR/common.sh"
 # Get all paths and variables from common functions
 eval $(get_feature_paths)
 
+# Apply output name override if provided
+if [[ -n "$OUTPUT_NAME" ]]; then
+    IMPL_PLAN="$FEATURE_DIR/$OUTPUT_NAME"
+fi
+
 # Check if we're on a proper feature branch (only for git repos)
 check_feature_branch "$CURRENT_BRANCH" "$HAS_GIT" || exit 1
 
 # Ensure the feature directory exists
 mkdir -p "$FEATURE_DIR"
 
-# Copy plan template if it exists
+# Copy plan template if it exists and destination doesn't
 TEMPLATE="$REPO_ROOT/.specify/templates/plan-template.md"
-if [[ -f "$TEMPLATE" ]]; then
+if [[ -f "$IMPL_PLAN" ]]; then
+    echo "Plan file already exists at $IMPL_PLAN (skipping template copy)"
+elif [[ -f "$TEMPLATE" ]]; then
     cp "$TEMPLATE" "$IMPL_PLAN"
     echo "Copied plan template to $IMPL_PLAN"
 else

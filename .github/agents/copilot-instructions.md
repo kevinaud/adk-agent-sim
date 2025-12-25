@@ -30,9 +30,9 @@ cd src [ONLY COMMANDS FOR ACTIVE TECHNOLOGIES][ONLY COMMANDS FOR ACTIVE TECHNOLO
 Python 3.14+: Follow standard conventions
 
 ## Recent Changes
+- 003-ux-modernization-fixes: Added [if applicable, e.g., PostgreSQL, CoreData, files or N/A]
 - 003-ux-modernization: Added Python 3.14+ + `nicegui` (UI), Tailwind CSS (styling)
 - 003-ux-modernization: Added Python 3.14+ + NiceGUI 2.0+ (includes Quasar/Vue, Tailwind CSS)
-- 002-e2e-test-suite: Added Python 3.14+ + pytest, pytest-playwright, playwright, nicegui
 
 
 <!-- MANUAL ADDITIONS START -->
