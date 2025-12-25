@@ -791,6 +791,10 @@ class TestScreenshotCapture:
     page.wait_for_timeout(2000)
     page.wait_for_selector("text=Choose Action", timeout=TOOL_EXECUTION_TIMEOUT)
 
+    # Expand the Result panel to see the toggle buttons
+    page.locator("text=Result").first.click()
+    page.wait_for_timeout(500)
+
     # Ensure Raw mode is selected (should be default)
     page.wait_for_selector("button:has-text('Raw')", timeout=ELEMENT_TIMEOUT)
 
@@ -829,6 +833,10 @@ class TestScreenshotCapture:
     # Wait for result
     page.wait_for_timeout(2000)
     page.wait_for_selector("text=Choose Action", timeout=TOOL_EXECUTION_TIMEOUT)
+
+    # Expand the Result panel to see the toggle buttons
+    page.locator("text=Result").first.click()
+    page.wait_for_timeout(500)
 
     # Click JSON toggle button
     json_button = page.locator("button:has-text('JSON')")
@@ -873,6 +881,10 @@ class TestScreenshotCapture:
     # Wait for result
     page.wait_for_timeout(2000)
     page.wait_for_selector("text=Choose Action", timeout=TOOL_EXECUTION_TIMEOUT)
+
+    # Expand the Result panel to see the toggle buttons
+    page.locator("text=Result").first.click()
+    page.wait_for_timeout(500)
 
     # Click Markdown toggle button
     markdown_button = page.locator("button:has-text('Markdown')")

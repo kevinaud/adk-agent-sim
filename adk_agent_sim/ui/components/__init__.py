@@ -20,7 +20,6 @@ from adk_agent_sim.ui.components.event_block import (
 )
 from adk_agent_sim.ui.components.event_stream import (
   EventStream,
-  ExpandCollapseStateManager,
   RefreshableEventStream,
   render_event_stream,
 )
@@ -64,7 +63,6 @@ __all__ = [
   "render_event_block",
   # Event Stream
   "EventStream",
-  "ExpandCollapseStateManager",
   "RefreshableEventStream",
   "render_event_stream",
   # JSON Tree

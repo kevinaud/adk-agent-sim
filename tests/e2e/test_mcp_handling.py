@@ -26,7 +26,7 @@ if TYPE_CHECKING:
 # Constants
 # =============================================================================
 
-MCP_TEST_SERVER_PORT = 8083  # Different port from regular E2E tests
+MCP_TEST_SERVER_PORT = 8095  # Different port from regular E2E tests (8081-8088)
 MCP_SERVER_PORT = 9001  # Port for the MCP server
 MCP_TEST_BASE_URL = f"http://127.0.0.1:{MCP_TEST_SERVER_PORT}"
 

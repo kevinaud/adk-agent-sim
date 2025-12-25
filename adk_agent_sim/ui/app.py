@@ -29,16 +29,19 @@ class SimulatorApp:
     @ui.page("/")
     async def index() -> None:  # pyright: ignore[reportUnusedFunction]
       """Agent selection page."""
-      from adk_agent_sim.ui.pages.agent_select import render_agent_select_page
+      from adk_agent_sim.ui.pages.agent_select import (
+        AgentInfo,
+        render_agent_select_page,
+      )
 
       # Build list of agent info with names and descriptions
-      agents_info: list[dict[str, str | None]] = []
+      agents_info: list[AgentInfo] = []
       for name, agent in self.controller.available_agents.items():
         agents_info.append(
-          {
-            "name": name,
-            "description": agent.description,
-          }
+          AgentInfo(
+            name=name,
+            description=agent.description,
+          )
         )
 
       async def on_select(agent_name: str) -> None:
@@ -73,7 +76,7 @@ class SimulatorApp:
             timeout=0,
           )
 
-      render_agent_select_page(agents_info, on_select)  # type: ignore
+      render_agent_select_page(agents_info, on_select)
 
     @ui.page("/simulate")
     async def simulate() -> None:  # pyright: ignore[reportUnusedFunction]

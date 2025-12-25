@@ -2,11 +2,18 @@
 
 from __future__ import annotations
 
-from typing import Awaitable, Callable
+from typing import Awaitable, Callable, TypedDict
 
 from nicegui import ui
 
 from adk_agent_sim.ui.components.agent_card import AgentCard
+
+
+class AgentInfo(TypedDict):
+  """Type definition for agent info dictionary."""
+
+  name: str
+  description: str | None
 
 
 class AgentSelectPage:
@@ -14,17 +21,17 @@ class AgentSelectPage:
 
   def __init__(
     self,
-    agents: list[dict[str, str | None]],
+    agents_info: list[AgentInfo],
     on_select: Callable[[str], Awaitable[None]],
   ) -> None:
     """
     Initialize the agent selection page.
 
     Args:
-      agents: List of agent info dicts with 'name' and 'description'
+      agents_info: List of agent info dicts with 'name' and 'description' keys
       on_select: Async callback when an agent is selected
     """
-    self.agents = agents
+    self.agents_info = agents_info
     self.on_select = on_select
 
   def render(self) -> None:
@@ -57,7 +64,7 @@ class AgentSelectPage:
   def _render_card_grid(self) -> None:
     """Render the agent cards in a responsive grid."""
     with ui.column().classes("w-full items-center py-8 px-4 flex-grow"):
-      if not self.agents:
+      if not self.agents_info:
         # Empty state
         with ui.card().classes("p-8 text-center"):
           ui.icon("warning", size="xl").classes("text-yellow-500 mb-4")
@@ -69,13 +76,12 @@ class AgentSelectPage:
 
       # Card grid container
       with ui.row().classes("flex-wrap gap-6 justify-center"):
-        for agent_info in self.agents:
+        for agent_info in self.agents_info:
           self._render_agent_card(agent_info)
 
-  def _render_agent_card(self, agent_info: dict[str, str | None]) -> None:
+  def _render_agent_card(self, agent_info: AgentInfo) -> None:
     """Render a single agent card."""
-    agent_name = str(agent_info.get("name", "Unknown"))
-    description = agent_info.get("description")
+    agent_name = agent_info["name"]
 
     # Create closure for click handler
     async def on_card_click() -> None:
@@ -83,7 +89,7 @@ class AgentSelectPage:
 
     card = AgentCard(
       name=agent_name,
-      description=description,
+      description=agent_info.get("description"),
       on_click=on_card_click,
     )
     card.render()
@@ -91,26 +97,26 @@ class AgentSelectPage:
   def _render_footer(self) -> None:
     """Render the page footer with agent count info."""
     with ui.column().classes("w-full items-center py-6 bg-white border-t"):
-      count = len(self.agents)
+      count = len(self.agents_info)
       ui.label(f"{count} agent{'s' if count != 1 else ''} available").classes(
         "text-sm text-gray-500"
       )
 
 
 def render_agent_select_page(
-  agents: list[dict[str, str | None]],
+  agents_info: list[AgentInfo],
   on_select: Callable[[str], Awaitable[None]],
 ) -> AgentSelectPage:
   """
   Render the agent selection page.
 
   Args:
-    agents: List of agent info dicts with 'name' and 'description'
+    agents_info: List of agent info dicts with 'name' and 'description' keys
     on_select: Async selection callback
 
   Returns:
     AgentSelectPage instance
   """
-  page = AgentSelectPage(agents, on_select)
+  page = AgentSelectPage(agents_info, on_select)
   page.render()
   return page

@@ -2,6 +2,11 @@
 
 This module provides pytest fixtures for running E2E tests against the
 ADK Agent Simulator using Playwright for browser automation.
+
+Supports parallel execution with pytest-xdist:
+  uv run pytest tests/e2e/ -n 4  # Run with 4 parallel workers
+
+Each xdist worker gets its own server instance on a unique port.
 """
 
 from __future__ import annotations
@@ -23,8 +28,9 @@ if TYPE_CHECKING:
 # Constants
 # =============================================================================
 
-TEST_SERVER_PORT = 8081
-TEST_BASE_URL = f"http://127.0.0.1:{TEST_SERVER_PORT}"
+# Base port for test servers (workers use BASE_PORT + worker_id)
+BASE_SERVER_PORT = 8081
+MAX_WORKERS = 8  # Maximum parallel workers supported
 
 # Screenshot directory (relative to repo root)
 SCREENSHOT_DIR = Path(__file__).parent.parent.parent / "docs" / "screenshots"
@@ -34,7 +40,7 @@ SCREENSHOT_WIDTH = 1280
 SCREENSHOT_HEIGHT = 720
 
 # Timeout constants (in seconds)
-SERVER_STARTUP_TIMEOUT = 10
+SERVER_STARTUP_TIMEOUT = 15
 ELEMENT_TIMEOUT = 10000  # Playwright uses milliseconds
 TOOL_EXECUTION_TIMEOUT = 30000  # Playwright uses milliseconds
 
@@ -42,6 +48,35 @@ TOOL_EXECUTION_TIMEOUT = 30000  # Playwright uses milliseconds
 # =============================================================================
 # Helper Functions
 # =============================================================================
+
+
+def _get_worker_id(request: pytest.FixtureRequest) -> int:
+  """Get the xdist worker ID, or 0 if not running with xdist.
+
+  Args:
+    request: The pytest fixture request object.
+
+  Returns:
+    Integer worker ID (0-based), or 0 for non-parallel runs.
+  """
+  # xdist sets worker_id like "gw0", "gw1", etc.
+  worker_id = getattr(request.config, "workerinput", {}).get("workerid", "master")
+  if worker_id == "master":
+    return 0
+  # Extract number from "gwN"
+  return int(worker_id.replace("gw", ""))
+
+
+def _get_server_port(worker_id: int) -> int:
+  """Get the server port for a given worker.
+
+  Args:
+    worker_id: The xdist worker ID (0-based).
+
+  Returns:
+    The port number for this worker's server.
+  """
+  return BASE_SERVER_PORT + worker_id
 
 
 def _wait_for_port(port: int, timeout: float = SERVER_STARTUP_TIMEOUT) -> bool:
@@ -64,37 +99,42 @@ def _wait_for_port(port: int, timeout: float = SERVER_STARTUP_TIMEOUT) -> bool:
   return False
 
 
-def _run_server() -> None:
-  """Run the NiceGUI server in the current thread.
+def _make_server_runner(port: int) -> Callable[[], None]:
+  """Create a server runner function for a specific port.
 
-  This function is designed to be run in a daemon thread. It imports
-  the test agent and starts the simulator server directly using NiceGUI.
+  Args:
+    port: The port to run the server on.
+
+  Returns:
+    A callable that starts the NiceGUI server on the specified port.
   """
-  # Import here to avoid circular imports and ensure fresh state
-  from nicegui import ui
 
-  from adk_agent_sim.simulator import AgentSimulator
-  from tests.fixtures.agents.test_agent.agent import get_test_agent
+  def _run_server() -> None:
+    """Run the NiceGUI server in the current thread."""
+    # Import here to avoid circular imports and ensure fresh state
+    from nicegui import ui
 
-  agent = get_test_agent()
-  _simulator = AgentSimulator(  # noqa: F841 - Side effect: registers routes
-    agents={"TestAgent": agent},
-    host="127.0.0.1",
-    port=TEST_SERVER_PORT,
-  )
+    from adk_agent_sim.simulator import AgentSimulator
+    from tests.fixtures.agents.test_agent.agent import get_test_agent
 
-  # Create the app pages but don't start yet
-  # The simulator's _app has already set up the routes
+    agent = get_test_agent()
+    _simulator = AgentSimulator(  # noqa: F841 - Side effect: registers routes
+      agents={"TestAgent": agent},
+      host="127.0.0.1",
+      port=port,
+    )
 
-  # Run NiceGUI directly with server-mode settings
-  ui.run(  # pyright: ignore[reportUnknownMemberType]
-    host="127.0.0.1",
-    port=TEST_SERVER_PORT,
-    title="E2E Test Simulator",
-    reload=False,
-    show=False,  # Don't open browser
-    native=False,  # Don't use native mode
-  )
+    # Run NiceGUI directly with server-mode settings
+    ui.run(  # pyright: ignore[reportUnknownMemberType]
+      host="127.0.0.1",
+      port=port,
+      title=f"E2E Test Simulator (port {port})",
+      reload=False,
+      show=False,  # Don't open browser
+      native=False,  # Don't use native mode
+    )
+
+  return _run_server
 
 
 # =============================================================================
@@ -103,33 +143,62 @@ def _run_server() -> None:
 
 
 @pytest.fixture(scope="session")
-def run_server() -> Generator[str, None, None]:
+def worker_id(request: pytest.FixtureRequest) -> int:
+  """Get the current xdist worker ID.
+
+  Args:
+    request: The pytest fixture request object.
+
+  Returns:
+    Integer worker ID (0-based).
+  """
+  return _get_worker_id(request)
+
+
+@pytest.fixture(scope="session")
+def server_port(worker_id: int) -> int:
+  """Get the server port for this worker.
+
+  Args:
+    worker_id: The xdist worker ID.
+
+  Returns:
+    The port number for this worker's server.
+  """
+  return _get_server_port(worker_id)
+
+
+@pytest.fixture(scope="session")
+def run_server(server_port: int) -> Generator[str, None, None]:
   """Start the NiceGUI server in a background thread.
 
-  This session-scoped fixture starts the server once for all E2E tests
-  and yields the base URL. The daemon thread automatically terminates
-  when pytest exits.
+  This session-scoped fixture starts a server instance for each xdist
+  worker. When running with `-n N`, N separate servers are started
+  on ports BASE_SERVER_PORT through BASE_SERVER_PORT + N - 1.
 
   Yields:
     The base URL of the running server.
   """
+  base_url = f"http://127.0.0.1:{server_port}"
+
   # Set environment variables
   os.environ["ADK_AGENT_MODULE"] = "tests.fixtures.agents.test_agent"
   # NiceGUI requires this when running under pytest
-  os.environ["NICEGUI_SCREEN_TEST_PORT"] = str(TEST_SERVER_PORT)
+  os.environ["NICEGUI_SCREEN_TEST_PORT"] = str(server_port)
 
   # Start server in daemon thread
-  server_thread = threading.Thread(target=_run_server, daemon=True)
+  server_runner = _make_server_runner(server_port)
+  server_thread = threading.Thread(target=server_runner, daemon=True)
   server_thread.start()
 
   # Wait for server to be ready
-  if not _wait_for_port(TEST_SERVER_PORT, SERVER_STARTUP_TIMEOUT):
+  if not _wait_for_port(server_port, SERVER_STARTUP_TIMEOUT):
     pytest.fail(
-      f"Server failed to start on port {TEST_SERVER_PORT} "
+      f"Server failed to start on port {server_port} "
       f"within {SERVER_STARTUP_TIMEOUT} seconds"
     )
 
-  yield TEST_BASE_URL
+  yield base_url
 
   # Daemon thread auto-terminates when pytest exits
 

@@ -22,5 +22,7 @@ jobs:
           runCmd: |
             # Run Quality Checks
             ./scripts/check_quality.sh
-            # Run Tests
-            uv run pytest
+            # Run Unit and Integration Tests (sequential - async tests need single event loop)
+            uv run pytest tests/unit tests/integration -v
+            # Run E2E Tests (parallel with 4 workers for speed)
+            uv run pytest tests/e2e -n 4 -v
