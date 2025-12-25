@@ -6,6 +6,7 @@ from nicegui import ui
 
 from adk_agent_sim.models.history import HistoryEntry
 from adk_agent_sim.ui.components.event_block import LoadingBlock, render_event_block
+from adk_agent_sim.ui.components.expansion_state import ExpansionStateManager
 from adk_agent_sim.ui.styles import LAYOUT
 
 
@@ -32,6 +33,13 @@ class EventStream:
     self._container: ui.column | None = None
     self._scroll_area: ui.scroll_area | None = None
     self._auto_scroll = True
+    # State manager persists expand/collapse state across refreshes
+    self._state_manager = ExpansionStateManager(default_expanded=True)
+
+  def _generate_event_id(self, entry: HistoryEntry, index: int) -> str:
+    """Generate a stable event ID for state tracking."""
+    # Use timestamp + type + index to ensure uniqueness
+    return f"{entry.timestamp.isoformat()}_{entry.type}_{index}"
 
   def render(self) -> None:
     """Render the event stream component."""
@@ -60,9 +68,15 @@ class EventStream:
       self._render_empty_state()
       return
 
-    # Render each history entry
-    for entry in self.history:
-      render_event_block(entry, expanded=False)
+    # Render each history entry with state tracking
+    for index, entry in enumerate(self.history):
+      event_id = self._generate_event_id(entry, index)
+      render_event_block(
+        entry,
+        expanded=True,
+        event_id=event_id,
+        state_manager=self._state_manager,
+      )
 
     # Show loading block if executing
     if self.is_loading and self.loading_tool:
@@ -120,6 +134,12 @@ class RefreshableEventStream:
     self._is_loading = False
     self._loading_tool: str | None = None
     self._scroll_area: ui.scroll_area | None = None
+    # State manager persists expand/collapse state across refreshes
+    self._state_manager = ExpansionStateManager(default_expanded=True)
+
+  def _generate_event_id(self, entry: HistoryEntry, index: int) -> str:
+    """Generate a stable event ID for state tracking."""
+    return f"{entry.timestamp.isoformat()}_{entry.type}_{index}"
 
   def set_state(
     self,
@@ -154,9 +174,15 @@ class RefreshableEventStream:
           )
         return
 
-      # Render events
-      for entry in self._history:
-        render_event_block(entry, expanded=False)
+      # Render events with state tracking
+      for index, entry in enumerate(self._history):
+        event_id = self._generate_event_id(entry, index)
+        render_event_block(
+          entry,
+          expanded=True,
+          event_id=event_id,
+          state_manager=self._state_manager,
+        )
 
       # Loading block
       if self._is_loading and self._loading_tool:

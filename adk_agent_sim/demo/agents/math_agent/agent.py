@@ -36,6 +36,3 @@ def get_math_agent() -> Agent:
 """),
     tools=[get_demo_function_tool(), get_demo_mcp_server_toolset()],
   )
-
-
-root_agent = get_math_agent()

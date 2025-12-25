@@ -56,6 +56,3 @@ def get_sqlite_agent() -> Agent:
     """),
     tools=[get_sqlite_mcp_toolset()],
   )
-
-
-root_agent = get_sqlite_agent()

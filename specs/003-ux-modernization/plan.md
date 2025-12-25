@@ -1,94 +1,104 @@
-# Implementation Plan: UX Modernization
+# Implementation Plan: [FEATURE]
 
-**Branch**: `003-ux-modernization` | **Date**: 2025-12-24 | **Spec**: [spec.md](spec.md)
-**Input**: Feature specification from `/specs/003-ux-modernization/spec.md`
+**Branch**: `[###-feature-name]` | **Date**: [DATE] | **Spec**: [link]
+**Input**: Feature specification from `/specs/[###-feature-name]/spec.md`
+
+**Note**: This template is filled in by the `/speckit.plan` command. See `.specify/templates/commands/plan.md` for the execution workflow.
 
 ## Summary
 
-Modernize the ADK Agent Simulator UI from the current basic dropdown-and-split-pane layout to a polished, professional interface with:
-1. Card grid for agent selection (replacing dropdown)
-2. Structured event stream for history (replacing simple list)
-3. Right sidebar for controls (replacing equal 50/50 split)
-4. Collapsible JSON tree for tool outputs (replacing static code blocks)
-5. Expandable header for system prompt (consistent with current collapsible approach)
-
-This is a **UI-only refactor** with full feature parity—no backend changes required.
+[Extract from feature spec: primary requirement + technical approach from research]
 
 ## Technical Context
 
-**Language/Version**: Python 3.14+  
-**Primary Dependencies**: NiceGUI 2.0+ (includes Quasar/Vue, Tailwind CSS)  
-**Storage**: N/A (in-memory session only)  
-**Testing**: pytest (visual testing via existing e2e infrastructure)  
-**Target Platform**: Desktop browsers (Chrome, Firefox, Safari)  
-**Project Type**: Single Python package with embedded web UI  
-**Performance Goals**: Instant UI response (<100ms interaction feedback)  
-**Constraints**: Must work within NiceGUI's component model; no custom JS frameworks  
-**Scale/Scope**: 2 pages (Agent Select, Simulation), ~10 components to modify
+<!--
+  ACTION REQUIRED: Replace the content in this section with the technical details
+  for the project. The structure here is presented in advisory capacity to guide
+  the iteration process.
+-->
+
+**Language/Version**: [e.g., Python 3.11, Swift 5.9, Rust 1.75 or NEEDS CLARIFICATION]  
+**Primary Dependencies**: [e.g., FastAPI, UIKit, LLVM or NEEDS CLARIFICATION]  
+**Storage**: [if applicable, e.g., PostgreSQL, CoreData, files or N/A]  
+**Testing**: [e.g., pytest, XCTest, cargo test or NEEDS CLARIFICATION]  
+**Target Platform**: [e.g., Linux server, iOS 15+, WASM or NEEDS CLARIFICATION]
+**Project Type**: [single/web/mobile - determines source structure]  
+**Performance Goals**: [domain-specific, e.g., 1000 req/s, 10k lines/sec, 60 fps or NEEDS CLARIFICATION]  
+**Constraints**: [domain-specific, e.g., <200ms p95, <100MB memory, offline-capable or NEEDS CLARIFICATION]  
+**Scale/Scope**: [domain-specific, e.g., 10k users, 1M LOC, 50 screens or NEEDS CLARIFICATION]
 
 ## Constitution Check
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-| Principle | Status | Notes |
-|-----------|--------|-------|
-| I. Library-First | ✅ PASS | UI changes don't affect installability or import pattern |
-| II. Wrapper Integration | ✅ PASS | No changes to `AgentSimulator` entry point |
-| III. Wizard of Oz Model | ✅ PASS | All wizard interactions preserved (tool invoke, final response) |
-| IV. ADK Dependency | ✅ PASS | No changes to tool discovery/execution |
-| V. Golden Trace Output | ✅ PASS | Export functionality unchanged |
-| VI. Hermetic Dev Environment | ✅ PASS | NiceGUI already in deps; no new system dependencies |
-| VII. Strict Standards | ✅ PASS | All code will use ruff, pyright strict, 2-space indent |
-| VIII. Flexible UI Strategy | ✅ PASS | Staying with NiceGUI per existing choice |
-
-**Result**: All gates pass. No violations requiring justification.
+[Gates determined based on constitution file]
 
 ## Project Structure
 
 ### Documentation (this feature)
 
 ```text
-specs/003-ux-modernization/
-├── plan.md              # This file
-├── research.md          # Phase 0 output - NiceGUI patterns research
-├── data-model.md        # Phase 1 output - Component hierarchy
-├── quickstart.md        # Phase 1 output - Development guide
-├── contracts/           # Phase 1 output - Component interfaces
-└── tasks.md             # Phase 2 output (created by /speckit.tasks)
+specs/[###-feature]/
+├── plan.md              # This file (/speckit.plan command output)
+├── research.md          # Phase 0 output (/speckit.plan command)
+├── data-model.md        # Phase 1 output (/speckit.plan command)
+├── quickstart.md        # Phase 1 output (/speckit.plan command)
+├── contracts/           # Phase 1 output (/speckit.plan command)
+└── tasks.md             # Phase 2 output (/speckit.tasks command - NOT created by /speckit.plan)
 ```
 
 ### Source Code (repository root)
+<!--
+  ACTION REQUIRED: Replace the placeholder tree below with the concrete layout
+  for this feature. Delete unused options and expand the chosen structure with
+  real paths (e.g., apps/admin, packages/something). The delivered plan must
+  not include Option labels.
+-->
 
 ```text
-adk_agent_sim/
-├── ui/
-│   ├── app.py                    # Routes (minor changes)
-│   ├── styles.py                 # Design tokens (UPDATE)
-│   ├── components/
-│   │   ├── __init__.py
-│   │   ├── action_panel.py       # Tool selection (UPDATE)
-│   │   ├── agent_card.py         # NEW - Card component
-│   │   ├── event_block.py        # NEW - Event stream block
-│   │   ├── history_panel.py      # REPLACE with event_stream.py
-│   │   ├── event_stream.py       # NEW - Event stream container
-│   │   ├── json_tree.py          # NEW - Collapsible JSON tree
-│   │   ├── schema_form.py        # Keep (form rendering)
-│   │   ├── system_prompt.py      # UPDATE - Expandable header
-│   │   └── tool_executor.py      # UPDATE - Loading states
-│   └── pages/
-│       ├── __init__.py
-│       ├── agent_select.py       # REWRITE - Card grid
-│       └── simulation.py         # UPDATE - Layout restructure
+# [REMOVE IF UNUSED] Option 1: Single project (DEFAULT)
+src/
+├── models/
+├── services/
+├── cli/
+└── lib/
 
 tests/
-├── unit/
-│   └── test_ui_components.py     # NEW - Component tests
-└── e2e/
-    └── test_ui_visual.py         # NEW - Visual regression (optional)
+├── contract/
+├── integration/
+└── unit/
+
+# [REMOVE IF UNUSED] Option 2: Web application (when "frontend" + "backend" detected)
+backend/
+├── src/
+│   ├── models/
+│   ├── services/
+│   └── api/
+└── tests/
+
+frontend/
+├── src/
+│   ├── components/
+│   ├── pages/
+│   └── services/
+└── tests/
+
+# [REMOVE IF UNUSED] Option 3: Mobile + API (when "iOS/Android" detected)
+api/
+└── [same as backend above]
+
+ios/ or android/
+└── [platform-specific structure: feature modules, UI flows, platform tests]
 ```
 
-**Structure Decision**: Single Python package structure. All UI changes are contained within `adk_agent_sim/ui/`. No new top-level directories needed.
+**Structure Decision**: [Document the selected structure and reference the real
+directories captured above]
 
 ## Complexity Tracking
 
-> No Constitution violations. Table not required.
+> **Fill ONLY if Constitution Check has violations that must be justified**
+
+| Violation | Why Needed | Simpler Alternative Rejected Because |
+|-----------|------------|-------------------------------------|
+| [e.g., 4th project] | [current need] | [why 3 projects insufficient] |
+| [e.g., Repository pattern] | [specific problem] | [why direct DB access insufficient] |
