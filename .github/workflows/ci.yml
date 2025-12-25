@@ -15,22 +15,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v4
+      - name: Run CI in Dev Container
+        uses: devcontainers/ci-action@v0.3
         with:
-          version: "latest"
-
-      - name: Set up Python
-        run: uv python install 3.14
-
-      - name: Install dependencies
-        run: uv sync --locked
-
-      - name: Install Prettier
-        run: npm install -g prettier
-
-      - name: Run Quality Checks
-        run: ./scripts/check_quality.sh
-
-      - name: Run Tests
-        run: uv run pytest
+          push: never
+          runCmd: |
+            # Run Quality Checks
+            ./scripts/check_quality.sh
+            # Run Tests
+            uv run pytest
