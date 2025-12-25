@@ -87,9 +87,10 @@ class TestMCPServerUnavailable:
 
     This test captures the bug where MCP connection failures caused
     RuntimeError exceptions that were not properly caught.
-    """
-    from playwright.sync_api import sync_playwright
 
+    Note: This test runs Playwright in a subprocess to avoid conflicts with
+    pytest-xdist's event loop.
+    """
     # Start the simulator in a subprocess with MCP agent
     # This avoids NiceGUI global state issues
     server_script = f"""
@@ -136,95 +137,115 @@ ui.run(
           f"stdout: {stdout.decode()}, stderr: {stderr.decode()}"
         )
 
-      with sync_playwright() as p:
-        browser = p.chromium.launch()
-        page = browser.new_page()
-        page.set_default_timeout(ELEMENT_TIMEOUT)
+      # Run Playwright test in a subprocess to avoid event loop conflicts
+      # with pytest-xdist
+      test_script = f"""
+import sys
+sys.path.insert(0, '/workspaces/adk-agent-sim')
 
-        # Navigate to the simulator
-        page.goto(MCP_TEST_BASE_URL)
-        page.wait_for_load_state("networkidle")
+from playwright.sync_api import sync_playwright
 
-        # Verify we're on the agent selection page
-        page.wait_for_selector("text=ADK Agent Simulator")
-        page.wait_for_selector("text=MCPAgent")
+MCP_TEST_BASE_URL = "{MCP_TEST_BASE_URL}"
+ELEMENT_TIMEOUT = {ELEMENT_TIMEOUT}
 
-        # Click the MCPAgent card to start (new card-based UI)
-        page.click(".q-card:has-text('MCPAgent')")
+with sync_playwright() as p:
+    browser = p.chromium.launch()
+    page = browser.new_page()
+    page.set_default_timeout(ELEMENT_TIMEOUT)
 
-        # Wait for either:
-        # 1. An error message/notification to appear (expected after fix)
-        # 2. A reasonable timeout (indicates unhandled crash - BUG)
+    # Navigate to the simulator
+    page.goto(MCP_TEST_BASE_URL)
+    page.wait_for_load_state("networkidle")
 
-        # The test expects an error notification or error indicator to appear
-        # If no error handling, page will crash or hang
+    # Verify we're on the agent selection page
+    page.wait_for_selector("text=ADK Agent Simulator")
+    page.wait_for_selector("text=MCPAgent")
 
-        # Give the async operation time to complete or fail
-        page.wait_for_timeout(8000)
+    # Click the MCPAgent card to start (new card-based UI)
+    page.click(".q-card:has-text('MCPAgent')")
 
-        # Get page content for debugging
-        page_content = page.content()
+    # Give the async operation time to complete or fail
+    page.wait_for_timeout(8000)
 
-        # Check if simulation page loaded successfully
-        simulation_header = page.query_selector("text=Simulating:")
+    # Get page content for debugging
+    page_content = page.content()
 
-        # Check for NiceGUI notification (Quasar component)
-        notification = page.query_selector(".q-notification")
+    # Check if simulation page loaded successfully
+    simulation_header = page.query_selector("text=Simulating:")
 
-        if notification:
-          # Found a notification - test passes (error is shown)
-          pass
-        elif simulation_header:
-          # Simulation page loaded - check if tools are available
-          # With MCP server down, we expect either:
-          # 1. An error message about tools failing to load
-          # 2. Empty tools list with appropriate message
+    # Check for NiceGUI notification (Quasar component)
+    notification = page.query_selector(".q-notification")
 
-          # Wait a bit more for tools to try to load
-          page.wait_for_timeout(2000)
+    result = "pass"
+    error_msg = ""
 
-          # Check for visible error in the UI (not just page source)
-          error_notification = page.query_selector(".q-notification")
-          error_text = page.query_selector("text=error")
-          failed_text = page.query_selector("text=failed")
-          connection_text = page.query_selector("text=connection")
+    if notification:
+        # Found a notification - test passes (error is shown)
+        pass
+    elif simulation_header:
+        # Simulation page loaded - check for visible error in UI
+        page.wait_for_timeout(2000)
 
-          has_visible_error = any(
-            [
-              error_notification,
-              error_text,
-              failed_text,
-              connection_text,
-            ]
-          )
+        error_notification = page.query_selector(".q-notification")
+        error_text = page.query_selector("text=error")
+        failed_text = page.query_selector("text=failed")
+        connection_text = page.query_selector("text=connection")
 
-          if not has_visible_error:
-            # No visible error - check if this is the bug scenario
-            # where the app silently fails or shows wrong state
-            pytest.fail(
-              "Simulation page loaded but no error shown for unavailable "
-              "MCP server. When MCP tools cannot connect, a user-friendly "
-              "error message should be displayed."
+        has_visible_error = any([
+            error_notification,
+            error_text,
+            failed_text,
+            connection_text,
+        ])
+
+        if not has_visible_error:
+            result = "fail"
+            error_msg = (
+                "Simulation page loaded but no error shown for unavailable "
+                "MCP server. When MCP tools cannot connect, a user-friendly "
+                "error message should be displayed."
             )
-        else:
-          # Simulation page didn't load - check if there's an error on
-          # the agent selection page (notification or error text)
-          error_notification = page.query_selector(".q-notification")
-          # Look for text containing common error indicators
-          has_error_text = (
+    else:
+        # Simulation page didn't load - check for error indicators
+        error_notification = page.query_selector(".q-notification")
+        has_error_text = (
             "error" in page_content.lower()
             or "failed" in page_content.lower()
             or "connection" in page_content.lower()
-          )
+        )
 
-          if not error_notification and not has_error_text:
-            pytest.fail(
-              "Application appears to have crashed or hung when MCP server "
-              "unavailable. Expected graceful error handling with "
-              f"user-friendly message. Page content sample: {page_content[:500]}"
+        if not error_notification and not has_error_text:
+            result = "fail"
+            error_msg = (
+                "Application appears to have crashed or hung when MCP server "
+                f"unavailable. Page content sample: {{page_content[:500]}}"
             )
 
-        browser.close()
+    browser.close()
+
+    if result == "fail":
+        print(f"TEST_FAILED: {{error_msg}}")
+        sys.exit(1)
+    else:
+        print("TEST_PASSED")
+        sys.exit(0)
+"""
+      test_proc = subprocess.run(
+        [sys.executable, "-c", test_script],
+        capture_output=True,
+        text=True,
+        timeout=60,
+      )
+
+      if test_proc.returncode != 0:
+        error_output = test_proc.stdout + test_proc.stderr
+        if "TEST_FAILED:" in error_output:
+          # Extract the error message
+          for line in error_output.split("\n"):
+            if "TEST_FAILED:" in line:
+              pytest.fail(line.replace("TEST_FAILED:", "").strip())
+        else:
+          pytest.fail(f"Playwright subprocess failed: {error_output}")
 
     finally:
       # Clean up server subprocess
