@@ -5,6 +5,7 @@ Handles dynamic instantiation and argument mocking.
 
 import inspect
 import json
+from enum import Enum
 from typing import (
   Any,
   Callable,
@@ -123,7 +124,14 @@ class GalleryEngine:
     Instantiate a class by mapping query params to __init__ arguments.
     """
     sig = inspect.signature(cls.__init__)
-    type_hints = get_type_hints(cls.__init__)
+
+    # Try to get type hints, but handle failures from TYPE_CHECKING imports
+    try:
+      type_hints = get_type_hints(cls.__init__)
+    except NameError:
+      # Fall back to empty hints if forward references can't be resolved
+      type_hints = {}
+
     kwargs: Dict[str, Any] = {}
 
     for param_name, param in sig.parameters.items():
@@ -160,8 +168,17 @@ class GalleryEngine:
       return int(value)
     if target_type is float:
       return float(value)
-    # Check for dict/list types including generics like Dict[str, str], List[str]
+
+    # Handle Enum types
     origin = getattr(target_type, "__origin__", None)
+    if inspect.isclass(target_type) and issubclass(target_type, Enum):
+      # Try by value first, then by name
+      for member in target_type:
+        if member.value == value or member.name == value:
+          return member
+      raise ValueError(f"Invalid enum value '{value}' for {target_type}")
+
+    # Check for dict/list types including generics like Dict[str, str], List[str]
     if target_type is dict or origin is dict:
       try:
         return json.loads(value)
