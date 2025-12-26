@@ -150,3 +150,18 @@ CONTROL_PANEL_CLASSES = "h-full border-l bg-gray-50 p-4"
 
 # Expandable header styles
 EXPANDABLE_HEADER_CLASSES = "w-full bg-blue-50 mb-4"
+
+# DevTools tree styling - clean-room implementation (no code reuse from json_tree)
+DEVTOOLS_TREE_STYLES = {
+  "font_family": "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+  "font_size": "13px",
+  "line_height": "1.4",
+  "indent_size": "12px",
+  "thread_line_color": "#E0E0E0",
+  "key_color": "#881391",  # Purple for keys
+  "string_color": "#C41A16",  # Red for strings
+  "number_color": "#1C00CF",  # Blue for numbers
+  "boolean_color": "#0D47A1",  # Dark blue for booleans
+  "null_color": "#808080",  # Gray for null
+  "bracket_color": "#000000",  # Black for brackets
+}

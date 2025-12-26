@@ -18,11 +18,13 @@ from adk_agent_sim.models.history import (
 )
 from adk_agent_sim.ui.components.action_panel import ActionPanel
 from adk_agent_sim.ui.components.agent_card import AgentCard
+from adk_agent_sim.ui.components.devtools_tree import DevToolsTree
 from adk_agent_sim.ui.components.event_block import LoadingBlock, create_event_block
 from adk_agent_sim.ui.components.gallery_engine import ComponentRegistry, GalleryEngine
 from adk_agent_sim.ui.components.json_tree import JsonTree
 from adk_agent_sim.ui.components.text_presenter import TextPresenter
 from adk_agent_sim.ui.components.tool_catalog import ToolCatalog
+from adk_agent_sim.ui.components.tree_expansion_state import TreeExpansionState
 
 
 class GalleryTool(BaseTool):
@@ -211,6 +213,52 @@ def tool_catalog_default() -> ToolCatalog:
   return ToolCatalog(tools=get_gallery_tools(), expanded=True)
 
 
+def devtools_tree_nested() -> DevToolsTree:
+  """Render DevToolsTree with nested JSON data."""
+  data = {
+    "execution_trace": {
+      "step_id": "init_01",
+      "status": "success",
+      "config": {
+        "model": "gemini-1.5-pro",
+        "temperature": 0.7,
+        "max_tokens": 1024,
+      },
+      "results": [
+        {"id": 1, "score": 0.95, "label": "positive"},
+        {"id": 2, "score": 0.72, "label": "neutral"},
+      ],
+    },
+    "metadata": {
+      "timestamp": "2025-12-26T10:30:00Z",
+      "version": "1.0.0",
+    },
+  }
+  return DevToolsTree(data=data, tree_id="nested-demo")
+
+
+def devtools_tree_collapsed() -> DevToolsTree:
+  """Render DevToolsTree with collapsed state."""
+  data = {"outer": {"inner": {"deep": {"value": 123, "items": [1, 2, 3]}}}}
+  state = TreeExpansionState(default_expanded=False)
+  return DevToolsTree(data=data, tree_id="collapsed-demo", expansion_state=state)
+
+
+def devtools_tree_primitives() -> DevToolsTree:
+  """Render DevToolsTree showcasing all primitive types."""
+  data = {
+    "string_value": "Hello, World!",
+    "number_int": 42,
+    "number_float": 3.14159,
+    "bool_true": True,
+    "bool_false": False,
+    "null_value": None,
+    "empty_object": {},
+    "empty_array": [],
+  }
+  return DevToolsTree(data=data, tree_id="primitives-demo")
+
+
 def action_panel_default() -> ActionPanel:
   """Render ActionPanel with gallery tools."""
 
@@ -232,6 +280,7 @@ REGISTRY: ComponentRegistry = {
   # Simple Components (class-based, query param driven)
   "AgentCard": AgentCard,
   "JsonTree": JsonTree,
+  "DevToolsTree": DevToolsTree,
   "TextPresenter": TextPresenter,
   "LoadingBlock": LoadingBlock,
   # Event Blocks (factory-based, need HistoryEntry objects)
@@ -242,6 +291,10 @@ REGISTRY: ComponentRegistry = {
   "EventBlock_ToolError": event_block_tool_error,
   "EventBlock_FinalResponse": event_block_final_response,
   "EventBlock_Loading": event_block_loading,
+  # DevToolsTree variations (factory-based for complex state)
+  "DevToolsTree_Nested": devtools_tree_nested,
+  "DevToolsTree_Collapsed": devtools_tree_collapsed,
+  "DevToolsTree_Primitives": devtools_tree_primitives,
   # Complex Panels (factory-based, need tools/callbacks)
   "ToolCatalog_Default": tool_catalog_default,
   "ActionPanel_Default": action_panel_default,
