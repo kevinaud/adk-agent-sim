@@ -231,8 +231,10 @@ class DevToolsTree:
       display = f"[{key}]"
       color = self._styles["number_color"]
     else:
-      # Object key - render as "key"
-      display = f'"{key}"'
+      # Object key - render as "key" with HTML entities for quotes
+      escaped_key = str(key).replace("&", "&amp;")
+      escaped_key = escaped_key.replace("<", "&lt;").replace(">", "&gt;")
+      display = f"&quot;{escaped_key}&quot;"
       color = self._styles["key_color"]
 
     ui.element("span").classes("devtools-tree-key").style(f"color: {color};").props(
