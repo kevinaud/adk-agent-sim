@@ -74,25 +74,25 @@
 
 ### PR2 Implementation
 
-- [ ] T030 [PR2] Create `BlobType` enum (JSON, MARKDOWN, PLAIN) in adk_agent_sim/ui/components/smart_blob.py
-- [ ] T031 [PR2] Implement `SmartBlobDetector.try_parse_json()` - returns (parsed_data, error_msg)
-- [ ] T032 [PR2] Implement `SmartBlobDetector.detect_markdown_patterns()` - regex for `**`, `##`, `- `, `1. `, triple backticks
-- [ ] T033 [PR2] Implement `SmartBlobDetector.detect_type()` - returns BlobType based on content analysis
-- [ ] T034 [PR2] Handle edge cases: empty strings, whitespace-only, very short strings
-- [ ] T035 [PR2] Handle malformed JSON gracefully (return PLAIN, not error)
+- [x] T030 [PR2] Create `BlobType` enum (JSON, MARKDOWN, PLAIN) in adk_agent_sim/ui/components/smart_blob.py
+- [x] T031 [PR2] Implement `SmartBlobDetector.try_parse_json()` - returns (parsed_data, error_msg)
+- [x] T032 [PR2] Implement `SmartBlobDetector.detect_markdown_patterns()` - regex for `**`, `##`, `- `, `1. `, triple backticks
+- [x] T033 [PR2] Implement `SmartBlobDetector.detect_type()` - returns BlobType based on content analysis
+- [x] T034 [PR2] Handle edge cases: empty strings, whitespace-only, very short strings
+- [x] T035 [PR2] Handle malformed JSON gracefully (return PLAIN, not error)
 
 ### PR2 Tests
 
-- [ ] T036 [P] [PR2] Create tests/unit/test_smart_blob.py with detection tests
-- [ ] T037 [P] [PR2] Add tests for valid JSON objects and arrays
-- [ ] T038 [P] [PR2] Add tests for malformed JSON (should return PLAIN)
-- [ ] T039 [P] [PR2] Add tests for Markdown patterns (headers, bold, lists, code blocks)
-- [ ] T040 [P] [PR2] Add tests for edge cases (empty, whitespace, single char, no patterns)
+- [x] T036 [P] [PR2] Create tests/unit/test_smart_blob.py with detection tests
+- [x] T037 [P] [PR2] Add tests for valid JSON objects and arrays
+- [x] T038 [P] [PR2] Add tests for malformed JSON (should return PLAIN)
+- [x] T039 [P] [PR2] Add tests for Markdown patterns (headers, bold, lists, code blocks)
+- [x] T040 [P] [PR2] Add tests for edge cases (empty, whitespace, single char, no patterns)
 
 ### PR2 Quality & Submission
 
-- [ ] T041 [PR2] Run `./scripts/check_quality.sh` and fix any issues
-- [ ] T042 [PR2] Run `uv run pytest tests/unit/test_smart_blob.py -v`
+- [x] T041 [PR2] Run `./scripts/check_quality.sh` and fix any issues
+- [x] T042 [PR2] Run `uv run pytest tests/unit/test_smart_blob.py -v`
 - [ ] T043 [PR2] Commit all changes with message: `feat(ui): add SmartBlobDetector for content type detection`
 - [ ] T044 [PR2] Push branch to remote: `git push -u origin 004-devtools-event-renderer-pr2`
 - [ ] T045 [PR2] Open PR via GitHub CLI: `gh pr create --title "feat(ui): Smart Blob Detection [PR2/5]" --body "## Summary\nAdds SmartBlobDetector utility for detecting structured content in strings:\n- JSON detection (objects/arrays)\n- Markdown detection (headers, bold, lists, code blocks)\n- Graceful handling of malformed content\n\n## User Stories\nUS3, US4, US5 (P2) - Detection logic\n\n## Test Plan\n- Comprehensive unit tests for all detection scenarios\n- Edge case coverage\n\n## Part of\n004-devtools-event-renderer feature (PR 2 of 5)"`
