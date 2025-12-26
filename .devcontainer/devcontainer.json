@@ -1,13 +1,22 @@
 {
   "name": "adk-agent-sim (Py3.14, uv)",
-  "image": "mcr.microsoft.com/devcontainers/python:3.14",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": ".."
+  },
   "features": {
     "ghcr.io/devcontainers-extra/features/uv:1": {},
     "ghcr.io/devcontainers/features/node:1": {},
     "ghcr.io/devcontainers-extra/features/prettier:1": {},
     "ghcr.io/devcontainers-extra/features/apt-get-packages:1": {
 			"packages": "jq,procps,snapd,vim,cloc"
-		}
+		},
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+
+  // Set Playwright browsers path to match the Dockerfile installation location
+  "containerEnv": {
+    "PLAYWRIGHT_BROWSERS_PATH": "/ms-playwright"
   },
 
   "customizations": {
@@ -28,6 +37,15 @@
     }
   },
 
-  "postCreateCommand": "bash .devcontainer/setup-env.sh && uv run playwright install --with-deps",
+  // 1. HOST SIDE: Ensure the file exists before Docker tries to mount it.
+  // This command runs on your machine. If the file is missing, it creates an empty one.
+  "initializeCommand": "touch ${localEnv:HOME}/.gh_token_file",
+
+  // 2. MOUNT: This is now safe because the file is guaranteed to exist.
+  "mounts": [
+    "source=${localEnv:HOME}/.gh_token_file,target=/tmp/.gh_token_file,type=bind,readonly"
+  ],
+
+  "postCreateCommand": "bash .devcontainer/setup-env.sh",
   "postStartCommand": "bash .devcontainer/post-start.sh"
 }
