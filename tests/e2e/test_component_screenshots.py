@@ -162,6 +162,35 @@ SCREENSHOT_TESTS: list[ComponentScreenshot] = [
     description="Collapsed JSON tree",
   ),
   # -------------------------------------------------------------------------
+  # DevToolsTree variations (new component - clean-room implementation)
+  # -------------------------------------------------------------------------
+  ComponentScreenshot(
+    component="DevToolsTree",
+    test_name="simple_object",
+    params={
+      "data": '{"name": "Alice", "age": 30, "active": true}',
+      "tree_id": "simple-demo",
+    },
+    description="Simple JSON object with DevTools styling",
+  ),
+  ComponentScreenshot(
+    component="DevToolsTree_Nested",
+    test_name="default",
+    description="DevToolsTree with nested execution trace data",
+    viewport=(800, 700),
+  ),
+  ComponentScreenshot(
+    component="DevToolsTree_Collapsed",
+    test_name="default",
+    description="DevToolsTree with all nodes collapsed",
+  ),
+  ComponentScreenshot(
+    component="DevToolsTree_Primitives",
+    test_name="default",
+    description="DevToolsTree showcasing all JSON primitive types",
+    viewport=(800, 500),
+  ),
+  # -------------------------------------------------------------------------
   # TextPresenter variations
   # -------------------------------------------------------------------------
   ComponentScreenshot(

@@ -21,39 +21,39 @@
 
 ### PR1 Setup
 
-- [ ] T001 [PR1] Ensure main branch is up to date: `git checkout main && git pull origin main`
-- [ ] T002 [PR1] Create feature branch for PR1: `git checkout -b 004-devtools-event-renderer-pr1`
+- [x] T001 [PR1] Ensure main branch is up to date: `git checkout main && git pull origin main`
+- [x] T002 [PR1] Create feature branch for PR1: `git checkout -b 004-devtools-event-renderer-pr1`
 
 ### PR1 Implementation
 
-- [ ] T003 [PR1] Add `DEVTOOLS_TREE_STYLES` constants to adk_agent_sim/ui/styles.py (colors, fonts, spacing)
-- [ ] T004 [PR1] Create `GlobalMode` enum in adk_agent_sim/ui/components/tree_expansion_state.py
-- [ ] T005 [PR1] Create `TreeExpansionState` dataclass in adk_agent_sim/ui/components/tree_expansion_state.py
-- [ ] T006 [PR1] Implement `is_expanded()`, `toggle()`, `expand_all()`, `collapse_all()` methods
-- [ ] T007 [PR1] Create `ValueType` enum in adk_agent_sim/ui/components/devtools_tree.py
-- [ ] T008 [PR1] Implement `DevToolsTree` class with `__init__()` accepting data, tree_id, expansion_state
-- [ ] T009 [PR1] Implement `_render_node()` recursive method for dict/list/primitive rendering
-- [ ] T010 [PR1] Implement thread line CSS via inline styles with `::before` pseudo-element pattern
-- [ ] T011 [PR1] Implement syntax coloring for keys (purple), strings (red), numbers (blue), booleans (dark blue), null (gray)
-- [ ] T012 [PR1] Implement click-to-toggle expand/collapse on chevron icons
-- [ ] T013 [PR1] Ensure all nodes expanded by default (default_expanded=True)
+- [x] T003 [PR1] Add `DEVTOOLS_TREE_STYLES` constants to adk_agent_sim/ui/styles.py (colors, fonts, spacing)
+- [x] T004 [PR1] Create `GlobalMode` enum in adk_agent_sim/ui/components/tree_expansion_state.py
+- [x] T005 [PR1] Create `TreeExpansionState` dataclass in adk_agent_sim/ui/components/tree_expansion_state.py
+- [x] T006 [PR1] Implement `is_expanded()`, `toggle()`, `expand_all()`, `collapse_all()` methods
+- [x] T007 [PR1] Create `ValueType` enum in adk_agent_sim/ui/components/devtools_tree.py
+- [x] T008 [PR1] Implement `DevToolsTree` class with `__init__()` accepting data, tree_id, expansion_state
+- [x] T009 [PR1] Implement `_render_node()` recursive method for dict/list/primitive rendering
+- [x] T010 [PR1] Implement thread line CSS via inline styles with `::before` pseudo-element pattern
+- [x] T011 [PR1] Implement syntax coloring for keys (purple), strings (red), numbers (blue), booleans (dark blue), null (gray)
+- [x] T012 [PR1] Implement click-to-toggle expand/collapse on chevron icons
+- [x] T013 [PR1] Ensure all nodes expanded by default (default_expanded=True)
 
 ### PR1 Tests
 
-- [ ] T014 [P] [PR1] Create tests/unit/test_tree_expansion_state.py with state management tests
-- [ ] T015 [P] [PR1] Create tests/unit/test_devtools_tree.py with rendering tests for nested structures
-- [ ] T016 [PR1] Add test for expand_all/collapse_all bulk operations
-- [ ] T017 [PR1] Add test for path-based sparse state storage
+- [x] T014 [P] [PR1] Create tests/unit/test_tree_expansion_state.py with state management tests
+- [x] T015 [P] [PR1] Create tests/unit/test_devtools_tree.py with rendering tests for nested structures
+- [x] T016 [PR1] Add test for expand_all/collapse_all bulk operations
+- [x] T017 [PR1] Add test for path-based sparse state storage
 
 ### PR1 Quality & Submission
 
-- [ ] T018 [PR1] Run `./scripts/check_quality.sh` and fix any issues
-- [ ] T019 [PR1] Run `uv run pytest tests/unit/test_tree_expansion_state.py tests/unit/test_devtools_tree.py -v`
-- [ ] T020 [PR1] Commit all changes with message: `feat(ui): add DevToolsTree component with expansion state`
-- [ ] T021 [PR1] Push branch to remote: `git push -u origin 004-devtools-event-renderer-pr1`
-- [ ] T022 [PR1] Open PR via GitHub CLI: `gh pr create --title "feat(ui): Core DevTools Tree Renderer [PR1/5]" --body "## Summary\nAdds the foundational DevToolsTree component with:\n- Hierarchical tree rendering\n- Monospace typography with syntax coloring\n- Thread lines connecting parent-child nodes\n- Expand/collapse state management\n\n## User Story\nUS1 (P1) - View Execution Trace at a Glance\n\n## Test Plan\n- Unit tests for TreeExpansionState\n- Unit tests for DevToolsTree rendering\n\n## Part of\n004-devtools-event-renderer feature (PR 1 of 5)"`
-- [ ] T023 [PR1] Wait for CI checks to complete: `gh pr checks --watch`
-- [ ] T024 [PR1] If CI fails, retrieve logs: `gh run view --log-failed`, fix issues, commit, push, repeat T023
+- [x] T018 [PR1] Run `./scripts/check_quality.sh` and fix any issues
+- [x] T019 [PR1] Run `uv run pytest tests/unit/test_tree_expansion_state.py tests/unit/test_devtools_tree.py -v`
+- [x] T020 [PR1] Commit all changes with message: `feat(ui): add DevToolsTree component with expansion state`
+- [x] T021 [PR1] Push branch to remote: `git push -u origin 004-devtools-event-renderer-pr1`
+- [x] T022 [PR1] Open PR via GitHub CLI: `gh pr create --title "feat(ui): Core DevTools Tree Renderer [PR1/5]" --body "## Summary\nAdds the foundational DevToolsTree component with:\n- Hierarchical tree rendering\n- Monospace typography with syntax coloring\n- Thread lines connecting parent-child nodes\n- Expand/collapse state management\n\n## User Story\nUS1 (P1) - View Execution Trace at a Glance\n\n## Test Plan\n- Unit tests for TreeExpansionState\n- Unit tests for DevToolsTree rendering\n\n## Part of\n004-devtools-event-renderer feature (PR 1 of 5)"`
+- [x] T023 [PR1] Wait for CI checks to complete: `gh pr checks --watch`
+- [x] T024 [PR1] If CI fails, retrieve logs: `gh run view --log-failed`, fix issues, commit, push, repeat T023
 - [ ] T025 [PR1] **STOP**: Inform user PR1 is ready for review at PR link, wait for verbal approval
 - [ ] T026 [PR1] Merge PR after approval: `gh pr merge --squash --delete-branch`
 - [ ] T027 [PR1] Update local main: `git checkout main && git pull origin main`
