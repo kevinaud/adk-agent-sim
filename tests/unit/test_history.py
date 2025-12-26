@@ -1,7 +1,5 @@
 """Unit tests for history entry models."""
 
-from __future__ import annotations
-
 from datetime import datetime, timezone
 
 from adk_agent_sim.models.history import (

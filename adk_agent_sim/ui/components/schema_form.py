@@ -1,7 +1,5 @@
 """Universal Schema → Form renderer for NiceGUI."""
 
-from __future__ import annotations
-
 from typing import Any, Callable, cast
 
 from nicegui import ui

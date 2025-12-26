@@ -1,9 +1,8 @@
 """NiceGUI application setup and routing."""
 
-from __future__ import annotations
-
 from typing import TYPE_CHECKING
 
+from fastapi import Request
 from nicegui import ui
 
 if TYPE_CHECKING:
@@ -89,6 +88,18 @@ class SimulatorApp:
         return
 
       await render_simulation_page(self.controller)  # type: ignore
+
+    @ui.page("/_gallery")
+    def gallery_index() -> None:  # pyright: ignore[reportUnusedFunction]
+      from adk_agent_sim.ui.pages.component_gallery import render_gallery_index
+
+      render_gallery_index()
+
+    @ui.page("/_gallery/{name}")
+    def gallery_item(request: Request, name: str) -> None:  # pyright: ignore[reportUnusedFunction]
+      from adk_agent_sim.ui.pages.component_gallery import render_gallery_component
+
+      render_gallery_component(name, request.query_params)
 
   def run(
     self,

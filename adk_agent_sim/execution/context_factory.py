@@ -1,7 +1,5 @@
 """Factory functions for creating ADK execution contexts."""
 
-from __future__ import annotations
-
 import uuid
 from typing import TYPE_CHECKING, Any
 

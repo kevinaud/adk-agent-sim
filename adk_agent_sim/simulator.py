@@ -1,7 +1,5 @@
 """AgentSimulator entry point class."""
 
-from __future__ import annotations
-
 from typing import TYPE_CHECKING
 
 from adk_agent_sim.controller import SimulationController

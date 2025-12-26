@@ -9,8 +9,6 @@ These tests verify User Story 2 acceptance scenarios 4-9 from spec.md:
 - Scenario 9: Collapse All button works
 """
 
-from __future__ import annotations
-
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:

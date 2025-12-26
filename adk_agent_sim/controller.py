@@ -1,7 +1,5 @@
 """Simulation controller for orchestrating the agent simulation workflow."""
 
-from __future__ import annotations
-
 from typing import TYPE_CHECKING, Any
 
 from adk_agent_sim.execution.tool_runner import ExecutionResult, ToolRunner

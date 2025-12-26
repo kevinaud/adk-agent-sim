@@ -1,7 +1,5 @@
 """Agent selection page component."""
 
-from __future__ import annotations
-
 from typing import Awaitable, Callable, TypedDict
 
 from nicegui import ui

@@ -1,7 +1,5 @@
 """Tool catalog component for displaying all tools with full metadata."""
 
-from __future__ import annotations
-
 from typing import TYPE_CHECKING, Any, TypedDict
 
 from nicegui import ui

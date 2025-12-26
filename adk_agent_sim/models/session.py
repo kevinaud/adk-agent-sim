@@ -1,7 +1,5 @@
 """Session state and model for simulation runs."""
 
-from __future__ import annotations
-
 import time
 import uuid
 from enum import Enum

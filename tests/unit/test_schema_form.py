@@ -1,7 +1,5 @@
 """Unit tests for schema form rendering utilities."""
 
-from __future__ import annotations
-
 from unittest.mock import MagicMock, patch
 
 from adk_agent_sim.ui.components.schema_form import (

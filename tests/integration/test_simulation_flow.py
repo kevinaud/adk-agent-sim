@@ -1,7 +1,5 @@
 """Integration tests for end-to-end simulation flow."""
 
-from __future__ import annotations
-
 import json
 from typing import Any, cast
 from unittest.mock import MagicMock, patch

@@ -4,8 +4,6 @@ This module contains Playwright-based E2E tests that verify the complete
 simulation flow from agent selection through tool execution to final response.
 """
 
-from __future__ import annotations
-
 from collections.abc import Callable
 from typing import TYPE_CHECKING
 

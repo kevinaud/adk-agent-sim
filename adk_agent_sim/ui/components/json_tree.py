@@ -1,19 +1,15 @@
 """Interactive collapsible JSON tree component."""
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from nicegui import ui
 
+from adk_agent_sim.ui.components.text_presenter import PresentationModeManager
 from adk_agent_sim.ui.styles import (
   JSON_TREE_KEY_STYLE,
   JSON_TREE_PRIMITIVE_COLORS,
   JSON_TREE_VALUE_STYLE,
 )
-
-if TYPE_CHECKING:
-  from adk_agent_sim.ui.components.text_presenter import PresentationModeManager
 
 
 class JsonTree:
