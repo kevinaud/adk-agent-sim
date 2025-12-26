@@ -108,8 +108,6 @@ class DevToolsTree:
         value=self.data,
         key=None,
         path="root",
-        depth=0,
-        is_last=True,
       )
 
   def _render_node(
@@ -117,8 +115,6 @@ class DevToolsTree:
     value: Any,
     key: str | int | None,
     path: str,
-    depth: int,
-    is_last: bool,
   ) -> None:
     """Recursively render a tree node.
 
@@ -126,25 +122,13 @@ class DevToolsTree:
       value: The value at this node
       key: The key/index for this node (None for root)
       path: Unique path identifier for state tracking
-      depth: Current nesting depth (0 = root)
-      is_last: Whether this is the last sibling (affects thread lines)
     """
     value_type = _get_value_type(value)
     is_container = value_type in (ValueType.OBJECT, ValueType.ARRAY)
     is_expanded = self.expansion_state.is_expanded(path) if is_container else False
 
-    # Calculate indentation
-    indent_px = depth * int(self._styles["indent_size"].replace("px", ""))
-
-    # Thread line styles - applied to the node container
-    thread_style = self._get_thread_line_style(depth, is_last)
-
-    with (
-      ui.element("div")
-      .classes("devtools-tree-node")
-      .style(f"position: relative; padding-left: {indent_px + 12}px; {thread_style}")
-    ):
-      # Render the node row (toggle + key + value preview)
+    with ui.element("div").classes("devtools-tree-node"):
+      # Render the node row (toggle + key + value/opening brace)
       with (
         ui.element("div")
         .classes("devtools-tree-row")
@@ -164,38 +148,15 @@ class DevToolsTree:
             f"color: {self._styles['bracket_color']}; margin: 0 4px;"
           ).props('innerHTML=": "')
 
-        # Value or container preview
+        # Value or container opening brace
         if is_container:
-          self._render_container_preview(value, value_type, is_expanded)
+          self._render_opening_brace(value, value_type, is_expanded)
         else:
           self._render_primitive(value, value_type)
 
-      # Render children if expanded
+      # Render children and closing brace if expanded container
       if is_container and is_expanded:
-        self._render_children(value, value_type, path, depth)
-
-  def _get_thread_line_style(self, depth: int, is_last: bool) -> str:
-    """Generate CSS for thread lines.
-
-    Args:
-      depth: Current nesting depth
-      is_last: Whether this is the last sibling
-
-    Returns:
-      CSS style string for the thread line
-    """
-    if depth == 0:
-      return ""
-
-    line_color = self._styles["thread_line_color"]
-    indent_px = int(self._styles["indent_size"].replace("px", ""))
-    left_pos = (depth - 1) * indent_px + 8
-
-    # For last child, line only goes to the middle of the row
-    if is_last:
-      return f"--thread-line-left: {left_pos}px; --thread-line-color: {line_color}; "
-
-    return f"--thread-line-left: {left_pos}px; --thread-line-color: {line_color}; "
+        self._render_children_and_close(value, value_type, path)
 
   def _render_toggle(self, path: str, is_expanded: bool) -> None:
     """Render the expand/collapse toggle chevron.
@@ -241,13 +202,13 @@ class DevToolsTree:
       f'innerHTML="{display}"'
     )
 
-  def _render_container_preview(
+  def _render_opening_brace(
     self,
     value: Any,
     value_type: ValueType,
     is_expanded: bool,
   ) -> None:
-    """Render the preview for object/array containers.
+    """Render the opening brace or collapsed preview for containers.
 
     Args:
       value: The container value
@@ -311,51 +272,52 @@ class DevToolsTree:
       f'innerHTML="{display}"'
     )
 
-  def _render_children(
+  def _render_children_and_close(
     self,
     value: Any,
     value_type: ValueType,
     parent_path: str,
-    depth: int,
   ) -> None:
-    """Render child nodes for a container.
+    """Render child nodes and closing brace for a container.
+
+    Uses CSS margin-left on the children container for indentation.
+    The closing brace is a sibling of the children container,
+    ensuring it aligns with the opening brace.
 
     Args:
       value: The container (dict or list)
       value_type: OBJECT or ARRAY
       parent_path: Path of the parent node
-      depth: Current nesting depth
     """
     bracket_color = self._styles["bracket_color"]
+    indent = self._styles["indent_size"]
 
-    with ui.element("div").classes("devtools-tree-children"):
+    # Children container - indented via margin-left
+    with (
+      ui.element("div")
+      .classes("devtools-tree-children")
+      .style(f"margin-left: {indent};")
+    ):
       if value_type == ValueType.OBJECT:
         items = list(value.items())
-        for i, (child_key, child_value) in enumerate(items):
+        for child_key, child_value in items:
           child_path = f"{parent_path}.{child_key}"
-          is_last = i == len(items) - 1
           self._render_node(
             value=child_value,
             key=child_key,
             path=child_path,
-            depth=depth + 1,
-            is_last=is_last,
           )
       else:  # ARRAY
         for i, child_value in enumerate(value):
           child_path = f"{parent_path}[{i}]"
-          is_last = i == len(value) - 1
           self._render_node(
             value=child_value,
             key=i,
             path=child_path,
-            depth=depth + 1,
-            is_last=is_last,
           )
 
-    # Closing bracket - align with the opening bracket (same indent as parent)
-    indent_px = depth * int(self._styles["indent_size"].replace("px", ""))
+    # Closing bracket - sibling of children, same level as opening brace
     closing = "}" if value_type == ValueType.OBJECT else "]"
-    ui.element("div").style(
-      f"padding-left: {indent_px + 12}px; color: {bracket_color};"
-    ).props(f'innerHTML="{closing}"')
+    ui.element("div").style(f"color: {bracket_color}; padding-left: 16px;").props(
+      f'innerHTML="{closing}"'
+    )
