@@ -2,7 +2,8 @@
 
 bash .devcontainer/setup-env.sh
 
-uv run playwright install --with-deps
+# Playwright browsers are pre-installed in the container image
+# No need to run playwright install here
 
 if [ -s /tmp/.gh_token_file ]; then
   cat /tmp/.gh_token_file | gh auth login --with-token
