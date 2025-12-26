@@ -1,7 +1,5 @@
 """Collapsible system prompt/instructions component."""
 
-from __future__ import annotations
-
 from nicegui import ui
 
 from adk_agent_sim.ui.styles import EXPANDABLE_HEADER_CLASSES

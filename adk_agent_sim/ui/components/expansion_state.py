@@ -5,8 +5,6 @@ state for event blocks within a simulation session. Per the UX spec, state
 is session-only (in-memory) and NOT persisted across page refreshes.
 """
 
-from __future__ import annotations
-
 from dataclasses import dataclass, field
 
 

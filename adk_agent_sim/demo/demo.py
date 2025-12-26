@@ -1,7 +1,5 @@
 """ADK Agent Sim demo app."""
 
-from __future__ import annotations
-
 import structlog
 import typer
 from rich.console import Console

@@ -1,7 +1,5 @@
 """Unit tests for expansion state management."""
 
-from __future__ import annotations
-
 from adk_agent_sim.ui.components.expansion_state import ExpansionStateManager
 
 

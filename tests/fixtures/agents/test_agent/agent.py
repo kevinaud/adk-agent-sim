@@ -4,8 +4,6 @@ This agent is specifically designed to exercise different UI widget types
 and error handling scenarios in the ADK Agent Simulator E2E tests.
 """
 
-from __future__ import annotations
-
 import textwrap
 from typing import Literal
 

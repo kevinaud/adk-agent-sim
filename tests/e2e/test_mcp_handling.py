@@ -8,8 +8,6 @@ These tests are run in isolation with subprocess-based server management
 to avoid conflicts with NiceGUI's global state.
 """
 
-from __future__ import annotations
-
 import os
 import socket
 import subprocess

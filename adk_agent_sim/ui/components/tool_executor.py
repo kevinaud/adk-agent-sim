@@ -1,7 +1,5 @@
 """Tool executor component with form, timer, and cancel functionality."""
 
-from __future__ import annotations
-
 import asyncio
 from typing import TYPE_CHECKING, Any, Callable
 

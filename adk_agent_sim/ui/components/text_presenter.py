@@ -1,7 +1,5 @@
 """Text presenter component with toggleable presentation modes (Raw/JSON/Markdown)."""
 
-from __future__ import annotations
-
 import ast
 import json
 from enum import Enum

@@ -1,7 +1,5 @@
 """Integration tests for tool execution."""
 
-from __future__ import annotations
-
 from typing import Any, cast
 from unittest.mock import MagicMock, patch
 

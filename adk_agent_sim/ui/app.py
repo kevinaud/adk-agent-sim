@@ -1,7 +1,5 @@
 """NiceGUI application setup and routing."""
 
-from __future__ import annotations
-
 from typing import TYPE_CHECKING
 
 from nicegui import ui

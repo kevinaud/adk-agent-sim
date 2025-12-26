@@ -1,7 +1,5 @@
 """Event stream component for displaying session history."""
 
-from __future__ import annotations
-
 from nicegui import ui
 
 from adk_agent_sim.models.history import HistoryEntry

@@ -4,8 +4,6 @@ This agent uses McpToolset to connect to an MCP server, which exercises
 the MCP connection handling in the ADK Agent Simulator.
 """
 
-from __future__ import annotations
-
 import textwrap
 
 from google.adk.agents.llm_agent import Agent

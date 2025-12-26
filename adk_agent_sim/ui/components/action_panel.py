@@ -1,7 +1,5 @@
 """Action panel component for tool selection and final response."""
 
-from __future__ import annotations
-
 import json
 from typing import TYPE_CHECKING, Any, Awaitable, Callable
 

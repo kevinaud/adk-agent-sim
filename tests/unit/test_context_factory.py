@@ -1,7 +1,5 @@
 """Unit tests for context factory functions."""
 
-from __future__ import annotations
-
 import pytest
 from google.adk.agents.llm_agent import Agent
 from google.adk.tools.function_tool import FunctionTool

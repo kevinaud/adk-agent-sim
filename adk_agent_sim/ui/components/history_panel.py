@@ -1,7 +1,5 @@
 """History panel component for displaying session history."""
 
-from __future__ import annotations
-
 import json
 
 from nicegui import ui

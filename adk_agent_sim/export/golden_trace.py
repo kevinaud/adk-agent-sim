@@ -1,7 +1,5 @@
 """Golden Trace builder for exporting sessions as ADK EvalCase format."""
 
-from __future__ import annotations
-
 import json
 import re
 from datetime import datetime, timezone

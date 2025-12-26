@@ -211,7 +211,7 @@ Location: `adk_agent_sim/ui/components/expansion_state.py` (new file)
 ```python
 """Expansion state management for event stream components."""
 
-from __future__ import annotations
+
 from dataclasses import dataclass, field
 
 @dataclass

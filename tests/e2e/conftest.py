@@ -9,8 +9,6 @@ Supports parallel execution with pytest-xdist:
 Each xdist worker gets its own server instance on a unique port.
 """
 
-from __future__ import annotations
-
 import os
 import socket
 import threading

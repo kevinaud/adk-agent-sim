@@ -1,7 +1,5 @@
 """Agent card component for the agent selection dashboard."""
 
-from __future__ import annotations
-
 from typing import Awaitable, Callable
 
 from nicegui import ui
