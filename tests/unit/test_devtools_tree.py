@@ -144,8 +144,8 @@ class TestDevToolsTreeExpansionState:
   def test_expand_all_integration(self) -> None:
     """expand_all() works through tree's expansion state (T016)."""
     state = TreeExpansionState()
-    state.node_overrides["root.a"] = False
-    state.node_overrides["root.b"] = False
+    state.node_states["root.a"] = False
+    state.node_states["root.b"] = False
 
     tree = DevToolsTree(
       data={"a": {}, "b": {}},
@@ -153,7 +153,7 @@ class TestDevToolsTreeExpansionState:
       expansion_state=state,
     )
 
-    tree.expansion_state.expand_all()
+    tree.expansion_state.expand_all(["root.a", "root.b"])
 
     assert tree.expansion_state.is_expanded("root.a") is True
     assert tree.expansion_state.is_expanded("root.b") is True
@@ -165,7 +165,7 @@ class TestDevToolsTreeExpansionState:
       tree_id="test",
     )
 
-    tree.expansion_state.collapse_all()
+    tree.expansion_state.collapse_all(["root.a", "root.b"])
 
     assert tree.expansion_state.is_expanded("root.a") is False
     assert tree.expansion_state.is_expanded("root.b") is False
