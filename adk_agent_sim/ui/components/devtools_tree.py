@@ -288,11 +288,11 @@ class DevToolsTree:
       # Escape HTML and quotes, preserve newlines for display
       escaped = str(value).replace("&", "&amp;")
       escaped = escaped.replace("<", "&lt;").replace(">", "&gt;")
-      escaped = escaped.replace('"', "&quot;")
       # Truncate long strings
       if len(escaped) > 100:
         escaped = escaped[:100] + "..."
-      display = f'"{escaped}"'
+      # Use HTML entities for surrounding quotes
+      display = f"&quot;{escaped}&quot;"
       color = self._styles["string_color"]
     elif value_type == ValueType.NUMBER:
       display = str(value)
@@ -353,9 +353,9 @@ class DevToolsTree:
             is_last=is_last,
           )
 
-    # Closing bracket
+    # Closing bracket - align with the opening bracket (same indent as parent)
     indent_px = depth * int(self._styles["indent_size"].replace("px", ""))
     closing = "}" if value_type == ValueType.OBJECT else "]"
     ui.element("div").style(
-      f"padding-left: {indent_px + 28}px; color: {bracket_color};"
+      f"padding-left: {indent_px + 12}px; color: {bracket_color};"
     ).props(f'innerHTML="{closing}"')

@@ -156,7 +156,7 @@ DEVTOOLS_TREE_STYLES = {
   "font_family": "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
   "font_size": "13px",
   "line_height": "1.4",
-  "indent_size": "20px",
+  "indent_size": "12px",
   "thread_line_color": "#E0E0E0",
   "key_color": "#881391",  # Purple for keys
   "string_color": "#C41A16",  # Red for strings
