@@ -188,7 +188,31 @@ SCREENSHOT_TESTS: list[ComponentScreenshot] = [
     component="DevToolsTree_Primitives",
     test_name="default",
     description="DevToolsTree showcasing all JSON primitive types",
-    viewport=(800, 500),
+    viewport=(800, 400),
+  ),
+  ComponentScreenshot(
+    component="DevToolsTree_ArrayRoot",
+    test_name="default",
+    description="DevToolsTree with array as root element",
+    viewport=(800, 350),
+  ),
+  ComponentScreenshot(
+    component="DevToolsTree_DeeplyNested",
+    test_name="default",
+    description="DevToolsTree with deeply nested structure showing indentation",
+    viewport=(800, 400),
+  ),
+  ComponentScreenshot(
+    component="DevToolsTree_LongStrings",
+    test_name="default",
+    description="DevToolsTree with long strings showing truncation behavior",
+    viewport=(800, 350),
+  ),
+  ComponentScreenshot(
+    component="DevToolsTree_ToolOutput",
+    test_name="default",
+    description="DevToolsTree displaying realistic tool output data",
+    viewport=(800, 700),
   ),
   # -------------------------------------------------------------------------
   # TextPresenter variations

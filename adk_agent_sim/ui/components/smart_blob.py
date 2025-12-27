@@ -7,9 +7,10 @@ Clean-room implementation: No code reused from existing components.
 """
 
 import json
-import re
 from enum import Enum
 from typing import Any
+
+from markdown_it import MarkdownIt
 
 
 class BlobType(Enum):
@@ -26,19 +27,6 @@ class SmartBlobDetector:
   Provides static methods to analyze string content and determine
   the most appropriate rendering format.
   """
-
-  # Markdown patterns to detect
-  # - Headers: ## or ### at start of line
-  # - Bold: **text**
-  # - Lists: - item or 1. item at start of line
-  # - Code blocks: ``` at start of line
-  _MARKDOWN_PATTERNS = [
-    re.compile(r"^#{1,6}\s", re.MULTILINE),  # Headers
-    re.compile(r"\*\*[^*]+\*\*"),  # Bold
-    re.compile(r"^[-*]\s", re.MULTILINE),  # Unordered lists
-    re.compile(r"^\d+\.\s", re.MULTILINE),  # Ordered lists
-    re.compile(r"^```", re.MULTILINE),  # Code blocks
-  ]
 
   @staticmethod
   def try_parse_json(value: str) -> tuple[Any, str | None]:
@@ -69,7 +57,7 @@ class SmartBlobDetector:
   def detect_markdown_patterns(value: str) -> bool:
     """Check if string contains Markdown patterns.
 
-    Detects: headers (##), bold (**), lists (- or 1.), code blocks (```)
+    Uses markdown-it-py to parse the string and check for structural elements.
 
     Args:
       value: String to analyze
@@ -84,10 +72,31 @@ class SmartBlobDetector:
     if len(value.strip()) < 3:
       return False
 
-    for pattern in SmartBlobDetector._MARKDOWN_PATTERNS:
-      if pattern.search(value):
-        return True
+    md = MarkdownIt()
+    tokens = md.parse(value)
 
+    # Check if any token is a "structural" markdown element
+    # We ignore 'paragraph_open', 'inline', and 'text' as they exist in plain text
+    markdown_indicators = {
+      "heading_open",
+      "fence",
+      "blockquote_open",
+      "list_item_open",
+      "table_open",
+      "hr",
+      "link_open",
+      "em_open",
+      "strong_open",
+    }
+
+    for token in tokens:
+      if token.type in markdown_indicators:
+        return True
+      # Also check inline children for formatting (bold/italics/links)
+      if token.type == "inline" and token.children:
+        for child in token.children:
+          if child.type in markdown_indicators:
+            return True
     return False
 
   @staticmethod

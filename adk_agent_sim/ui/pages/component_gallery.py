@@ -259,6 +259,78 @@ def devtools_tree_primitives() -> DevToolsTree:
   return DevToolsTree(data=data, tree_id="primitives-demo")
 
 
+def devtools_tree_array_root() -> DevToolsTree:
+  """Render DevToolsTree with an array as the root element."""
+  data = [
+    {"id": 1, "name": "Alice", "role": "Admin"},
+    {"id": 2, "name": "Bob", "role": "User"},
+    {"id": 3, "name": "Carol", "role": "Editor"},
+  ]
+  return DevToolsTree(data=data, tree_id="array-root-demo")
+
+
+def devtools_tree_deeply_nested() -> DevToolsTree:
+  """Render DevToolsTree with deeply nested structure for indentation testing."""
+  data = {
+    "level1": {
+      "level2": {
+        "level3": {
+          "level4": {
+            "level5": {
+              "value": "deeply nested",
+              "count": 42,
+            },
+          },
+        },
+      },
+    },
+  }
+  return DevToolsTree(data=data, tree_id="deeply-nested-demo")
+
+
+def devtools_tree_long_strings() -> DevToolsTree:
+  """Render DevToolsTree with long string values to test truncation."""
+  data = {
+    "short": "Hello",
+    "medium": "This is a medium length string that fits on one line.",
+    "long": (
+      "This is a very long string that should be truncated when displayed "
+      "in the DevToolsTree component because it exceeds the maximum display "
+      "length of 100 characters."
+    ),
+    "multiline": "Line 1\nLine 2\nLine 3",
+  }
+  return DevToolsTree(data=data, tree_id="long-strings-demo")
+
+
+def devtools_tree_tool_output() -> DevToolsTree:
+  """Render DevToolsTree simulating real tool output data."""
+  data = {
+    "tool_name": "search_database",
+    "execution_time_ms": 127,
+    "success": True,
+    "results": [
+      {
+        "id": "doc_001",
+        "title": "Introduction to AI Agents",
+        "score": 0.95,
+        "snippet": "AI agents are autonomous systems that...",
+      },
+      {
+        "id": "doc_002",
+        "title": "Building LLM Applications",
+        "score": 0.87,
+        "snippet": "Large language models enable...",
+      },
+    ],
+    "metadata": {
+      "total_docs_searched": 10000,
+      "query_expansion": ["AI", "artificial intelligence", "ML"],
+    },
+  }
+  return DevToolsTree(data=data, tree_id="tool-output-demo")
+
+
 def action_panel_default() -> ActionPanel:
   """Render ActionPanel with gallery tools."""
 
@@ -295,6 +367,10 @@ REGISTRY: ComponentRegistry = {
   "DevToolsTree_Nested": devtools_tree_nested,
   "DevToolsTree_Collapsed": devtools_tree_collapsed,
   "DevToolsTree_Primitives": devtools_tree_primitives,
+  "DevToolsTree_ArrayRoot": devtools_tree_array_root,
+  "DevToolsTree_DeeplyNested": devtools_tree_deeply_nested,
+  "DevToolsTree_LongStrings": devtools_tree_long_strings,
+  "DevToolsTree_ToolOutput": devtools_tree_tool_output,
   # Complex Panels (factory-based, need tools/callbacks)
   "ToolCatalog_Default": tool_catalog_default,
   "ActionPanel_Default": action_panel_default,
