@@ -20,9 +20,13 @@ class TestBlobTypeEnum:
     """MARKDOWN type has correct value."""
     assert BlobType.MARKDOWN.value == "markdown"
 
-  def test_plain_value(self) -> None:
-    """PLAIN type has correct value."""
-    assert BlobType.PLAIN.value == "plain"
+  def test_plain_text_value(self) -> None:
+    """PLAIN_TEXT type has correct value."""
+    assert BlobType.PLAIN_TEXT.value == "plain_text"
+
+  def test_plain_text_label(self) -> None:
+    """PLAIN_TEXT type has RAW as UI label."""
+    assert BlobType.PLAIN_TEXT.label == "RAW"
 
 
 class TestTryParseJson:
@@ -270,17 +274,17 @@ class TestDetectType:
   def test_plain_text(self) -> None:
     """Detects plain text."""
     value = "Just some regular text."
-    assert SmartBlobDetector.detect_type(value) == BlobType.PLAIN
+    assert SmartBlobDetector.detect_type(value) == BlobType.PLAIN_TEXT
 
   def test_empty_string(self) -> None:
     """Returns PLAIN for empty string."""
     value = ""
-    assert SmartBlobDetector.detect_type(value) == BlobType.PLAIN
+    assert SmartBlobDetector.detect_type(value) == BlobType.PLAIN_TEXT
 
   def test_whitespace_only(self) -> None:
     """Returns PLAIN for whitespace-only string."""
     value = "   \n\t   "
-    assert SmartBlobDetector.detect_type(value) == BlobType.PLAIN
+    assert SmartBlobDetector.detect_type(value) == BlobType.PLAIN_TEXT
 
   def test_json_takes_priority_over_markdown(self) -> None:
     """JSON detection takes priority over Markdown.
@@ -299,7 +303,7 @@ class TestDetectType:
   def test_malformed_json_plain_text_detected_as_plain(self) -> None:
     """Malformed JSON without Markdown becomes PLAIN."""
     value = '{"title": Not valid JSON and no markdown patterns'
-    assert SmartBlobDetector.detect_type(value) == BlobType.PLAIN
+    assert SmartBlobDetector.detect_type(value) == BlobType.PLAIN_TEXT
 
 
 class TestEdgeCases:
@@ -358,17 +362,17 @@ code block
   def test_almost_json_not_quite(self) -> None:
     """Handles strings that look like JSON but aren't."""
     value = "{'this': 'looks like JSON but uses single quotes'}"
-    assert SmartBlobDetector.detect_type(value) == BlobType.PLAIN
+    assert SmartBlobDetector.detect_type(value) == BlobType.PLAIN_TEXT
 
   def test_json_string_literal(self) -> None:
     """JSON string literals are PLAIN, not JSON blobs."""
     value = '"This is a JSON string literal"'
-    assert SmartBlobDetector.detect_type(value) == BlobType.PLAIN
+    assert SmartBlobDetector.detect_type(value) == BlobType.PLAIN_TEXT
 
   def test_number_as_json(self) -> None:
     """Numbers alone are PLAIN, not JSON blobs."""
     value = "3.14159"
-    assert SmartBlobDetector.detect_type(value) == BlobType.PLAIN
+    assert SmartBlobDetector.detect_type(value) == BlobType.PLAIN_TEXT
 
   def test_multiline_json(self) -> None:
     """Handles pretty-printed multiline JSON."""

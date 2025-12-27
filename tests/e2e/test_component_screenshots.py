@@ -215,6 +215,33 @@ SCREENSHOT_TESTS: list[ComponentScreenshot] = [
     viewport=(800, 700),
   ),
   # -------------------------------------------------------------------------
+  # BlobTogglePills variations (new PR3 component)
+  # -------------------------------------------------------------------------
+  ComponentScreenshot(
+    component="BlobTogglePills_JSON",
+    test_name="default",
+    description="BlobTogglePills for JSON content with JSON mode active",
+    viewport=(400, 100),
+  ),
+  ComponentScreenshot(
+    component="BlobTogglePills_Markdown",
+    test_name="default",
+    description="BlobTogglePills for Markdown content with MD mode active",
+    viewport=(400, 100),
+  ),
+  ComponentScreenshot(
+    component="BlobTogglePills_Plain",
+    test_name="default",
+    description="BlobTogglePills for plain text with only RAW mode available",
+    viewport=(400, 100),
+  ),
+  ComponentScreenshot(
+    component="BlobTogglePills_JSON_RawActive",
+    test_name="default",
+    description="BlobTogglePills for JSON with RAW mode pre-selected",
+    viewport=(400, 100),
+  ),
+  # -------------------------------------------------------------------------
   # TextPresenter variations
   # -------------------------------------------------------------------------
   ComponentScreenshot(

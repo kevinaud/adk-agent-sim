@@ -60,7 +60,7 @@
 
 ---
 
-## Phase 2: PR2 - Smart Blob Detection
+## Phase 2: PR2 - Smart Blob Detection ✅
 
 **Goal**: Implement content type detection for strings (JSON, Markdown, Plain)
 **User Stories**: US3, US4, US5 (P2) - Detection logic only
@@ -69,8 +69,8 @@
 
 ### PR2 Setup
 
-- [ ] T028 [PR2] Ensure on updated main: `git checkout main && git pull origin main`
-- [ ] T029 [PR2] Create feature branch for PR2: `git checkout -b 004-devtools-event-renderer-pr2`
+- [x] T028 [PR2] Ensure on updated main: `git checkout main && git pull origin main`
+- [x] T029 [PR2] Create feature branch for PR2: `git checkout -b 004-devtools-event-renderer-pr2`
 
 ### PR2 Implementation
 
@@ -113,32 +113,39 @@
 
 ### PR3 Setup
 
-- [ ] T051 [PR3] Ensure on updated main: `git checkout main && git pull origin main`
-- [ ] T052 [PR3] Create feature branch for PR3: `git checkout -b 004-devtools-event-renderer-pr3`
+- [x] T051 [PR3] Ensure on updated main: `git checkout main && git pull origin main`
+- [x] T052 [PR3] Create feature branch for PR3: `git checkout -b 004-devtools-event-renderer-pr3`
 
 ### PR3 Implementation
 
-- [ ] T053 [PR3] Add `SMART_BLOB_STYLES` constants to adk_agent_sim/ui/styles.py (toggle colors, sizing)
-- [ ] T054 [PR3] Create `ViewMode` enum (RAW, JSON, MARKDOWN) in adk_agent_sim/ui/components/smart_blob.py
-- [ ] T055 [PR3] Create `BlobViewState` dataclass with `get_mode()`, `set_mode()` methods
-- [ ] T056 [PR3] Implement default mode selection based on detected type (JSON→JSON view, MD→MD view)
-- [ ] T057 [PR3] Create `BlobTogglePills` component in adk_agent_sim/ui/components/blob_toggle_pills.py
-- [ ] T058 [PR3] Implement pill rendering with [RAW], [JSON], [MD] buttons
-- [ ] T059 [PR3] Style active toggle (solid background) vs inactive (outlined)
-- [ ] T060 [PR3] Implement click handlers to update BlobViewState
+- [x] T053 [PR3] Add `SMART_BLOB_STYLES` constants to adk_agent_sim/ui/styles.py (toggle colors, sizing)
+- [x] T054 [PR3] Create `ViewMode` enum (RAW, JSON, MARKDOWN) in adk_agent_sim/ui/components/smart_blob.py
+- [x] T055 [PR3] Create `BlobViewState` dataclass with `get_mode()`, `set_mode()` methods
+- [x] T056 [PR3] Implement default mode selection based on detected type (JSON→JSON view, MD→MD view)
+- [x] T057 [PR3] Create `BlobTogglePills` component in adk_agent_sim/ui/components/blob_toggle_pills.py
+- [x] T058 [PR3] Implement pill rendering with [RAW], [JSON], [MD] buttons
+- [x] T059 [PR3] Style active toggle (solid background) vs inactive (outlined)
+- [x] T060 [PR3] Implement click handlers to update BlobViewState
 
 ### PR3 Tests
 
-- [ ] T061 [P] [PR3] Create tests/unit/test_blob_toggle_pills.py
-- [ ] T062 [P] [PR3] Add tests for toggle rendering with correct labels
-- [ ] T063 [P] [PR3] Add tests for active/inactive visual state
-- [ ] T064 [P] [PR3] Add tests for click handler updating state
-- [ ] T065 [P] [PR3] Add tests for default mode selection based on BlobType
+- [x] T061 [P] [PR3] Create tests/unit/test_blob_toggle_pills.py
+- [x] T062 [P] [PR3] Add tests for toggle rendering with correct labels
+- [x] T063 [P] [PR3] Add tests for active/inactive visual state
+- [x] T064 [P] [PR3] Add tests for click handler updating state
+- [x] T065 [P] [PR3] Add tests for default mode selection based on BlobType
+
+### PR3 Screenshot Tests
+
+- [x] T065a [PR3] Analyze whether component screenshot tests need to be added or updated for BlobTogglePills
+- [x] T065b [PR3] Add BlobTogglePills to component_gallery.py with factory functions for different states
+- [x] T065c [PR3] Add screenshot test configurations to test_component_screenshots.py
+- [x] T065d [PR3] Execute screenshot tests and verify UI renders correctly
 
 ### PR3 Quality & Submission
 
-- [ ] T066 [PR3] Run `./scripts/check_quality.sh` and fix any issues
-- [ ] T067 [PR3] Run `uv run pytest tests/unit/test_smart_blob.py tests/unit/test_blob_toggle_pills.py -v`
+- [x] T066 [PR3] Run `./scripts/check_quality.sh` and fix any issues
+- [x] T067 [PR3] Run `uv run pytest tests/unit/test_smart_blob.py tests/unit/test_blob_toggle_pills.py -v`
 - [ ] T068 [PR3] Commit all changes with message: `feat(ui): add BlobTogglePills component and ViewMode state`
 - [ ] T069 [PR3] Push branch to remote: `git push -u origin 004-devtools-event-renderer-pr3`
 - [ ] T070 [PR3] Open PR via GitHub CLI: `gh pr create --title "feat(ui): View Mode Toggles [PR3/5]" --body "## Summary\nAdds toggle pill UI for switching between content views:\n- ViewMode enum (RAW, JSON, MARKDOWN)\n- BlobViewState for tracking active modes\n- BlobTogglePills component with styled buttons\n- Default mode selection based on detected content type\n\n## User Stories\nUS3, US4, US5 (P2) - Toggle UI\n\n## Test Plan\n- Unit tests for toggle rendering\n- Unit tests for state management\n\n## Part of\n004-devtools-event-renderer feature (PR 3 of 5)"`
@@ -190,6 +197,14 @@
 - [ ] T095 [PR4] Create tests/e2e/test_devtools_tree_e2e.py with integration tests
 - [ ] T096 [PR4] Add E2E test for toggle interaction flow
 
+### PR4 Screenshot Tests
+
+- [ ] T096a [PR4] Analyze whether component screenshot tests need to be added or updated for SmartBlobRenderer
+- [ ] T096b [PR4] Add SmartBlobRenderer to component_gallery.py with factory functions (RAW, JSON, Markdown views)
+- [ ] T096c [PR4] Add screenshot test configurations for SmartBlobRenderer variations
+- [ ] T096d [PR4] Update EventBlock screenshot tests to reflect DevToolsTree integration
+- [ ] T096e [PR4] Execute screenshot tests and verify UI renders correctly
+
 ### PR4 Quality & Submission
 
 - [ ] T097 [PR4] Run `./scripts/check_quality.sh` and fix any issues
@@ -234,13 +249,15 @@
 - [ ] T118 [PR5] Update __init__.py exports if json_tree was exported
 - [ ] T119 [PR5] Run grep to verify no json_tree references remain: `grep -r "json_tree\|JsonTree\|render_json_tree" adk_agent_sim/`
 
-### PR5 Implementation - Screenshots
+### PR5 Implementation - Screenshots & Screenshot Tests
 
-- [ ] T120 [PR5] Capture screenshot of DevToolsTree fully expanded state
-- [ ] T121 [PR5] Save to docs/screenshots/components/devtools-tree-expanded.png
-- [ ] T122 [PR5] Capture screenshot of DevToolsTree collapsed state
-- [ ] T123 [PR5] Save to docs/screenshots/components/devtools-tree-collapsed.png
-- [ ] T124 [PR5] Update tests/e2e/test_component_screenshots.py with new screenshot tests
+- [ ] T120 [PR5] Analyze whether component screenshot tests need to be added or updated for global controls
+- [ ] T121 [PR5] Add EventStream global controls to component_gallery.py with factory functions
+- [ ] T122 [PR5] Add screenshot test configurations for EventStream with expand/collapse controls
+- [ ] T123 [PR5] Capture screenshot of DevToolsTree fully expanded state
+- [ ] T124 [PR5] Capture screenshot of DevToolsTree collapsed state
+- [ ] T124a [PR5] Execute all screenshot tests and verify final UI renders correctly
+- [ ] T124b [PR5] Verify screenshots reflect removal of JsonTree (no visual regressions)
 
 ### PR5 Tests
 

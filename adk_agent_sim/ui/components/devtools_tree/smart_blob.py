@@ -7,6 +7,7 @@ Clean-room implementation: No code reused from existing components.
 """
 
 import json
+from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
 
@@ -14,11 +15,86 @@ from markdown_it import MarkdownIt
 
 
 class BlobType(Enum):
-  """Detected content type for string values."""
+  """Content type for string values, also used as view mode.
 
-  JSON = "json"  # Valid JSON object or array
-  MARKDOWN = "markdown"  # Contains Markdown formatting patterns
-  PLAIN = "plain"  # Plain text, no detected structure
+  Each type has a value (for serialization) and a label (for UI display).
+  PLAIN_TEXT is always available as a view mode. JSON and MARKDOWN are available
+  when the content is detected as that type.
+  """
+
+  PLAIN_TEXT = ("plain_text", "RAW")  # Plain text / raw view
+  JSON = ("json", "JSON")  # Valid JSON object or array
+  MARKDOWN = ("markdown", "MD")  # Contains Markdown formatting patterns
+
+  def __init__(self, value: str, label: str) -> None:
+    self._value_ = value
+    self._label = label
+
+  @property
+  def label(self) -> str:
+    """Display label for UI."""
+    return self._label
+
+
+@dataclass
+class BlobViewState:
+  """Manages view mode state for individual blob values.
+
+  Tracks the current view mode for each blob, with support
+  for default mode selection based on detected content type.
+  """
+
+  # Map from blob_id to current BlobType (used as view mode)
+  _modes: dict[str, BlobType] = field(default_factory=dict)
+
+  def get_mode(self, blob_id: str, default: BlobType | None = None) -> BlobType | None:
+    """Get the current view mode for a blob.
+
+    Args:
+      blob_id: Unique identifier for the blob
+      default: Default mode to return if not set
+
+    Returns:
+      Current BlobType or default if not set
+    """
+    return self._modes.get(blob_id, default)
+
+  def set_mode(self, blob_id: str, mode: BlobType) -> None:
+    """Set the view mode for a blob.
+
+    Args:
+      blob_id: Unique identifier for the blob
+      mode: BlobType to set as view mode
+    """
+    self._modes[blob_id] = mode
+
+  def reset(self, blob_id: str | None = None) -> None:
+    """Reset view mode(s) to unset state.
+
+    Args:
+      blob_id: If provided, reset only this blob. Otherwise reset all.
+    """
+    if blob_id is not None:
+      self._modes.pop(blob_id, None)
+    else:
+      self._modes.clear()
+
+  @staticmethod
+  def default_mode_for_type(detected_type: BlobType) -> BlobType:
+    """Determine the default view mode based on detected blob type.
+
+    This provides smart defaults: JSON content shows as JSON tree,
+    Markdown shows as rendered Markdown, plain/raw text shows raw.
+
+    Args:
+      detected_type: The detected BlobType
+
+    Returns:
+      Recommended default BlobType as view mode
+    """
+    # For detected types, show in their native format
+    # RAW content stays RAW
+    return detected_type
 
 
 class SmartBlobDetector:
@@ -106,7 +182,7 @@ class SmartBlobDetector:
     Detection priority:
     1. JSON (if valid JSON object or array)
     2. Markdown (if contains Markdown patterns)
-    3. Plain (default)
+    3. RAW (default for plain text)
 
     Args:
       value: String to analyze
@@ -115,7 +191,7 @@ class SmartBlobDetector:
       BlobType indicating the detected content type
     """
     if not value or not value.strip():
-      return BlobType.PLAIN
+      return BlobType.PLAIN_TEXT
 
     # Try JSON first (higher priority)
     parsed, _ = SmartBlobDetector.try_parse_json(value)
@@ -127,4 +203,4 @@ class SmartBlobDetector:
       return BlobType.MARKDOWN
 
     # Default to plain text
-    return BlobType.PLAIN
+    return BlobType.PLAIN_TEXT

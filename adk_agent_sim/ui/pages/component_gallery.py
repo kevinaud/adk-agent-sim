@@ -18,7 +18,13 @@ from adk_agent_sim.models.history import (
 )
 from adk_agent_sim.ui.components.action_panel import ActionPanel
 from adk_agent_sim.ui.components.agent_card import AgentCard
-from adk_agent_sim.ui.components.devtools_tree import DevToolsTree, TreeExpansionState
+from adk_agent_sim.ui.components.devtools_tree import (
+  BlobTogglePills,
+  BlobType,
+  BlobViewState,
+  DevToolsTree,
+  TreeExpansionState,
+)
 from adk_agent_sim.ui.components.event_block import LoadingBlock, create_event_block
 from adk_agent_sim.ui.components.gallery_engine import ComponentRegistry, GalleryEngine
 from adk_agent_sim.ui.components.json_tree import JsonTree
@@ -330,6 +336,51 @@ def devtools_tree_tool_output() -> DevToolsTree:
   return DevToolsTree(data=data, tree_id="tool-output-demo")
 
 
+def blob_toggle_pills_json() -> BlobTogglePills:
+  """Render BlobTogglePills for JSON content (RAW and JSON modes available)."""
+  state = BlobViewState()
+  return BlobTogglePills(
+    blob_id="json-demo",
+    detected_type=BlobType.JSON,
+    state=state,
+    on_change=lambda m: ui.notify(f"Switched to {m.value}"),
+  )
+
+
+def blob_toggle_pills_markdown() -> BlobTogglePills:
+  """Render BlobTogglePills for Markdown content (RAW and MD modes available)."""
+  state = BlobViewState()
+  return BlobTogglePills(
+    blob_id="md-demo",
+    detected_type=BlobType.MARKDOWN,
+    state=state,
+    on_change=lambda m: ui.notify(f"Switched to {m.value}"),
+  )
+
+
+def blob_toggle_pills_plain() -> BlobTogglePills:
+  """Render BlobTogglePills for plain text (only RAW mode available)."""
+  state = BlobViewState()
+  return BlobTogglePills(
+    blob_id="plain-demo",
+    detected_type=BlobType.PLAIN_TEXT,
+    state=state,
+    on_change=lambda m: ui.notify(f"Switched to {m.value}"),
+  )
+
+
+def blob_toggle_pills_json_raw_active() -> BlobTogglePills:
+  """Render BlobTogglePills for JSON with RAW mode pre-selected."""
+  state = BlobViewState()
+  state.set_mode("json-raw-demo", BlobType.PLAIN_TEXT)
+  return BlobTogglePills(
+    blob_id="json-raw-demo",
+    detected_type=BlobType.JSON,
+    state=state,
+    on_change=lambda m: ui.notify(f"Switched to {m.value}"),
+  )
+
+
 def action_panel_default() -> ActionPanel:
   """Render ActionPanel with gallery tools."""
 
@@ -370,6 +421,11 @@ REGISTRY: ComponentRegistry = {
   "DevToolsTree_DeeplyNested": devtools_tree_deeply_nested,
   "DevToolsTree_LongStrings": devtools_tree_long_strings,
   "DevToolsTree_ToolOutput": devtools_tree_tool_output,
+  # BlobTogglePills variations (factory-based for state management)
+  "BlobTogglePills_JSON": blob_toggle_pills_json,
+  "BlobTogglePills_Markdown": blob_toggle_pills_markdown,
+  "BlobTogglePills_Plain": blob_toggle_pills_plain,
+  "BlobTogglePills_JSON_RawActive": blob_toggle_pills_json_raw_active,
   # Complex Panels (factory-based, need tools/callbacks)
   "ToolCatalog_Default": tool_catalog_default,
   "ActionPanel_Default": action_panel_default,
