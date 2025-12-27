@@ -165,3 +165,30 @@ DEVTOOLS_TREE_STYLES = {
   "null_color": "#808080",  # Gray for null
   "bracket_color": "#000000",  # Black for brackets
 }
+
+# Smart blob toggle pill styles
+SMART_BLOB_STYLES = {
+  # Pill container
+  "pill_container_gap": "4px",
+  "pill_container_margin": "4px 0",
+  # Individual pill button
+  "pill_padding": "2px 8px",
+  "pill_border_radius": "4px",
+  "pill_font_size": "11px",
+  "pill_font_family": "ui-sans-serif, system-ui, sans-serif",
+  # Active pill (selected mode)
+  "active_bg": "#1976D2",
+  "active_text": "#FFFFFF",
+  "active_border": "#1976D2",
+  # Inactive pill (unselected mode)
+  "inactive_bg": "transparent",
+  "inactive_text": "#616161",
+  "inactive_border": "#BDBDBD",
+  # Hover states
+  "hover_inactive_bg": "#F5F5F5",
+  "hover_inactive_border": "#9E9E9E",
+  # Mode-specific colors (optional visual hints)
+  "json_accent": "#F57C00",  # Orange for JSON
+  "markdown_accent": "#388E3C",  # Green for Markdown
+  "raw_accent": "#616161",  # Gray for Raw
+}

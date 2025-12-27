@@ -5,6 +5,9 @@ DevTools-inspired tree format with expand/collapse behavior and smart
 content detection.
 """
 
+from adk_agent_sim.ui.components.devtools_tree.blob_toggle_pills import (
+  BlobTogglePills,
+)
 from adk_agent_sim.ui.components.devtools_tree.expansion_state import (
   TreeExpansionState,
 )
@@ -15,11 +18,14 @@ from adk_agent_sim.ui.components.devtools_tree.renderer import (
 )
 from adk_agent_sim.ui.components.devtools_tree.smart_blob import (
   BlobType,
+  BlobViewState,
   SmartBlobDetector,
 )
 
 __all__ = [
+  "BlobTogglePills",
   "BlobType",
+  "BlobViewState",
   "DevToolsTree",
   "SmartBlobDetector",
   "TreeExpansionState",
