@@ -1,4 +1,5 @@
 {
+    "jupyter.disableJupyterAutoStart": true,
     "[markdown]": {
         "editor.wordWrap": "wordWrapColumn",
         "editor.wordWrapColumn": 100,

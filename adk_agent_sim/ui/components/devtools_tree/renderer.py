@@ -15,7 +15,9 @@ from typing import Any
 
 from nicegui import ui
 
-from adk_agent_sim.ui.components.tree_expansion_state import TreeExpansionState
+from adk_agent_sim.ui.components.devtools_tree.expansion_state import (
+  TreeExpansionState,
+)
 from adk_agent_sim.ui.styles import DEVTOOLS_TREE_STYLES
 
 
@@ -66,8 +68,10 @@ class DevToolsTree:
 
   Example:
     ```python
-    from adk_agent_sim.ui.components.devtools_tree import DevToolsTree
-    from adk_agent_sim.ui.components.tree_expansion_state import TreeExpansionState
+    from adk_agent_sim.ui.components.devtools_tree import (
+      DevToolsTree,
+      TreeExpansionState,
+    )
 
     data = {"name": "example", "items": [1, 2, 3]}
     tree = DevToolsTree(data, tree_id="my-tree")
@@ -246,9 +250,13 @@ class DevToolsTree:
       value_type: The value's type
     """
     if value_type == ValueType.STRING:
-      # Escape HTML and quotes, preserve newlines for display
+      # Escape HTML and quotes, replace newlines with visible indicator
       escaped = str(value).replace("&", "&amp;")
       escaped = escaped.replace("<", "&lt;").replace(">", "&gt;")
+      # Use HTML entity for backslash to ensure it renders correctly
+      escaped = escaped.replace("\n", "&#92;n")  # Show newlines as \n
+      escaped = escaped.replace("\r", "&#92;r")  # Show carriage returns as \r
+      escaped = escaped.replace("\t", "&#92;t")  # Show tabs as \t
       # Truncate long strings
       if len(escaped) > 100:
         escaped = escaped[:100] + "..."

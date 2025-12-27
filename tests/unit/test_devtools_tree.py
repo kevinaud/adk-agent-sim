@@ -5,10 +5,10 @@ Tests the hierarchical JSON tree renderer functionality.
 
 from adk_agent_sim.ui.components.devtools_tree import (
   DevToolsTree,
+  TreeExpansionState,
   ValueType,
   _get_value_type,
 )
-from adk_agent_sim.ui.components.tree_expansion_state import TreeExpansionState
 
 
 class TestGetValueType:
