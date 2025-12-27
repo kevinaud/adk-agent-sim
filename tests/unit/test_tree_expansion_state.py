@@ -3,9 +3,7 @@
 Tests state management for DevTools tree node expand/collapse behavior.
 """
 
-from adk_agent_sim.ui.components.tree_expansion_state import (
-  TreeExpansionState,
-)
+from adk_agent_sim.ui.components.devtools_tree import TreeExpansionState
 
 
 class TestTreeExpansionStateInit:

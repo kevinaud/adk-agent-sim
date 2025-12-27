@@ -18,13 +18,12 @@ from adk_agent_sim.models.history import (
 )
 from adk_agent_sim.ui.components.action_panel import ActionPanel
 from adk_agent_sim.ui.components.agent_card import AgentCard
-from adk_agent_sim.ui.components.devtools_tree import DevToolsTree
+from adk_agent_sim.ui.components.devtools_tree import DevToolsTree, TreeExpansionState
 from adk_agent_sim.ui.components.event_block import LoadingBlock, create_event_block
 from adk_agent_sim.ui.components.gallery_engine import ComponentRegistry, GalleryEngine
 from adk_agent_sim.ui.components.json_tree import JsonTree
 from adk_agent_sim.ui.components.text_presenter import TextPresenter
 from adk_agent_sim.ui.components.tool_catalog import ToolCatalog
-from adk_agent_sim.ui.components.tree_expansion_state import TreeExpansionState
 
 
 class GalleryTool(BaseTool):

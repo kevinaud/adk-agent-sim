@@ -3,7 +3,7 @@
 Tests content type detection for JSON and Markdown patterns.
 """
 
-from adk_agent_sim.ui.components.smart_blob import (
+from adk_agent_sim.ui.components.devtools_tree import (
   BlobType,
   SmartBlobDetector,
 )
