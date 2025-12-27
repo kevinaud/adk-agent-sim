@@ -23,6 +23,7 @@ from adk_agent_sim.ui.components.devtools_tree import (
   BlobType,
   BlobViewState,
   DevToolsTree,
+  SmartBlobRenderer,
   TreeExpansionState,
 )
 from adk_agent_sim.ui.components.event_block import LoadingBlock, create_event_block
@@ -381,6 +382,96 @@ def blob_toggle_pills_json_raw_active() -> BlobTogglePills:
   )
 
 
+# --- SmartBlobRenderer Factories ---
+
+
+def smart_blob_renderer_json() -> SmartBlobRenderer:
+  """Render SmartBlobRenderer with JSON content showing formatted view."""
+  json_content = '{"name": "Alice", "age": 30, "roles": ["admin", "editor"]}'
+  blob_state = BlobViewState()
+  expansion_state = TreeExpansionState()
+  return SmartBlobRenderer(
+    value=json_content,
+    blob_id="smart-json-demo",
+    detected_type=BlobType.JSON,
+    blob_view_state=blob_state,
+    expansion_state=expansion_state,
+  )
+
+
+def smart_blob_renderer_markdown() -> SmartBlobRenderer:
+  """Render SmartBlobRenderer with Markdown content showing rendered view."""
+  md_content = textwrap.dedent("""
+    # Summary
+    
+    This is a **bold** statement with some `inline code`.
+    
+    - Item 1
+    - Item 2
+  """).strip()
+  blob_state = BlobViewState()
+  expansion_state = TreeExpansionState()
+  return SmartBlobRenderer(
+    value=md_content,
+    blob_id="smart-md-demo",
+    detected_type=BlobType.MARKDOWN,
+    blob_view_state=blob_state,
+    expansion_state=expansion_state,
+  )
+
+
+def smart_blob_renderer_plain() -> SmartBlobRenderer:
+  """Render SmartBlobRenderer with plain text (no toggle pills shown)."""
+  plain_content = "This is plain text without any special formatting."
+  blob_state = BlobViewState()
+  expansion_state = TreeExpansionState()
+  return SmartBlobRenderer(
+    value=plain_content,
+    blob_id="smart-plain-demo",
+    detected_type=BlobType.PLAIN_TEXT,
+    blob_view_state=blob_state,
+    expansion_state=expansion_state,
+  )
+
+
+def smart_blob_renderer_json_raw() -> SmartBlobRenderer:
+  """Render SmartBlobRenderer with JSON content showing RAW view."""
+  json_content = '{"status": "success", "count": 42}'
+  blob_state = BlobViewState()
+  expansion_state = TreeExpansionState()
+  blob_state.set_mode("smart-json-raw-demo", BlobType.PLAIN_TEXT)
+  return SmartBlobRenderer(
+    value=json_content,
+    blob_id="smart-json-raw-demo",
+    detected_type=BlobType.JSON,
+    blob_view_state=blob_state,
+    expansion_state=expansion_state,
+  )
+
+
+def smart_blob_renderer_nested_json() -> SmartBlobRenderer:
+  """Render SmartBlobRenderer with deeply nested JSON to test recursive rendering."""
+  import json
+
+  nested_data = {
+    "outer": {
+      "inner": {
+        "config": {"model": "gemini-1.5", "temperature": 0.7},
+        "results": [{"id": 1, "score": 0.95}, {"id": 2, "score": 0.87}],
+      }
+    }
+  }
+  blob_state = BlobViewState()
+  expansion_state = TreeExpansionState()
+  return SmartBlobRenderer(
+    value=json.dumps(nested_data),
+    blob_id="smart-nested-json-demo",
+    detected_type=BlobType.JSON,
+    blob_view_state=blob_state,
+    expansion_state=expansion_state,
+  )
+
+
 def action_panel_default() -> ActionPanel:
   """Render ActionPanel with gallery tools."""
 
@@ -426,6 +517,12 @@ REGISTRY: ComponentRegistry = {
   "BlobTogglePills_Markdown": blob_toggle_pills_markdown,
   "BlobTogglePills_Plain": blob_toggle_pills_plain,
   "BlobTogglePills_JSON_RawActive": blob_toggle_pills_json_raw_active,
+  # SmartBlobRenderer variations (factory-based for content + state)
+  "SmartBlobRenderer_JSON": smart_blob_renderer_json,
+  "SmartBlobRenderer_Markdown": smart_blob_renderer_markdown,
+  "SmartBlobRenderer_Plain": smart_blob_renderer_plain,
+  "SmartBlobRenderer_JSON_Raw": smart_blob_renderer_json_raw,
+  "SmartBlobRenderer_NestedJSON": smart_blob_renderer_nested_json,
   # Complex Panels (factory-based, need tools/callbacks)
   "ToolCatalog_Default": tool_catalog_default,
   "ActionPanel_Default": action_panel_default,

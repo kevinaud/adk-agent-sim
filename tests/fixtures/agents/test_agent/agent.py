@@ -46,12 +46,27 @@ def get_status(level: Literal["low", "medium", "high"]) -> str:
     level: The priority level (low, medium, or high).
 
   Returns:
-    A status message corresponding to the level.
+    A markdown-formatted status message corresponding to the level.
   """
   messages = {
-    "low": "Status: All systems nominal. No action required.",
-    "medium": "Status: Some attention needed. Please review.",
-    "high": "Status: URGENT! Immediate action required!",
+    "low": (
+      "## Status: All Systems Nominal\n\n"
+      "**No action required.**\n\n"
+      "- System healthy\n"
+      "- Resources available"
+    ),
+    "medium": (
+      "## Status: Attention Needed\n\n"
+      "**Please review** the following items:\n\n"
+      "1. Check logs\n"
+      "2. Review alerts"
+    ),
+    "high": (
+      "## Status: URGENT\n\n"
+      "**Immediate action required!**\n\n"
+      "- Critical alert active\n"
+      "- [View Dashboard](http://example.com)"
+    ),
   }
   return messages[level]
 

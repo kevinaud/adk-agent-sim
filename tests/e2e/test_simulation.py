@@ -789,8 +789,9 @@ class TestScreenshotCapture:
     page.wait_for_timeout(2000)
     page.wait_for_selector("text=Choose Action", timeout=TOOL_EXECUTION_TIMEOUT)
 
-    # Ensure Raw mode is selected (should be default)
-    page.wait_for_selector("button:has-text('Raw')", timeout=ELEMENT_TIMEOUT)
+    # Ensure RAW mode is selected (should be default)
+    # SmartBlobRenderer uses BlobTogglePills with span elements and uppercase labels
+    page.wait_for_selector("span:has-text('RAW')", timeout=ELEMENT_TIMEOUT)
 
     # Capture screenshot showing Raw mode
     capture_screenshot("text-presentation-raw")
@@ -828,10 +829,11 @@ class TestScreenshotCapture:
     page.wait_for_timeout(2000)
     page.wait_for_selector("text=Choose Action", timeout=TOOL_EXECUTION_TIMEOUT)
 
-    # Click JSON toggle button
-    json_button = page.locator("button:has-text('JSON')")
-    json_button.wait_for(timeout=ELEMENT_TIMEOUT)
-    json_button.click()
+    # Click JSON toggle pill
+    # SmartBlobRenderer uses BlobTogglePills with span elements
+    json_pill = page.locator("span:has-text('JSON')")
+    json_pill.wait_for(timeout=ELEMENT_TIMEOUT)
+    json_pill.click()
     page.wait_for_timeout(500)  # Wait for mode switch
 
     # Capture screenshot showing JSON mode
@@ -872,10 +874,11 @@ class TestScreenshotCapture:
     page.wait_for_timeout(2000)
     page.wait_for_selector("text=Choose Action", timeout=TOOL_EXECUTION_TIMEOUT)
 
-    # Click Markdown toggle button
-    markdown_button = page.locator("button:has-text('Markdown')")
-    markdown_button.wait_for(timeout=ELEMENT_TIMEOUT)
-    markdown_button.click()
+    # Click Markdown toggle pill
+    # SmartBlobRenderer uses BlobTogglePills with span elements and "MD" label
+    markdown_pill = page.locator("span:has-text('MD')")
+    markdown_pill.wait_for(timeout=ELEMENT_TIMEOUT)
+    markdown_pill.click()
     page.wait_for_timeout(500)  # Wait for mode switch
 
     # Capture screenshot showing Markdown mode

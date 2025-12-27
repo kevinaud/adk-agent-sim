@@ -242,6 +242,39 @@ SCREENSHOT_TESTS: list[ComponentScreenshot] = [
     viewport=(400, 100),
   ),
   # -------------------------------------------------------------------------
+  # SmartBlobRenderer variations (new PR4 component)
+  # -------------------------------------------------------------------------
+  ComponentScreenshot(
+    component="SmartBlobRenderer_JSON",
+    test_name="default",
+    description="SmartBlobRenderer with JSON content showing formatted tree view",
+    viewport=(600, 300),
+  ),
+  ComponentScreenshot(
+    component="SmartBlobRenderer_Markdown",
+    test_name="default",
+    description="SmartBlobRenderer with Markdown content showing rendered view",
+    viewport=(600, 350),
+  ),
+  ComponentScreenshot(
+    component="SmartBlobRenderer_Plain",
+    test_name="default",
+    description="SmartBlobRenderer with plain text (no toggle pills)",
+    viewport=(600, 150),
+  ),
+  ComponentScreenshot(
+    component="SmartBlobRenderer_JSON_Raw",
+    test_name="default",
+    description="SmartBlobRenderer with JSON showing RAW mode pre-selected",
+    viewport=(600, 200),
+  ),
+  ComponentScreenshot(
+    component="SmartBlobRenderer_NestedJSON",
+    test_name="default",
+    description="SmartBlobRenderer with deeply nested JSON structure",
+    viewport=(600, 500),
+  ),
+  # -------------------------------------------------------------------------
   # TextPresenter variations
   # -------------------------------------------------------------------------
   ComponentScreenshot(
