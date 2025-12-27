@@ -11,7 +11,7 @@ Clean-room implementation: No code reused from json_tree.py.
 """
 
 from enum import Enum
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from nicegui import ui
 
@@ -19,6 +19,9 @@ from adk_agent_sim.ui.components.devtools_tree.expansion_state import (
   TreeExpansionState,
 )
 from adk_agent_sim.ui.styles import DEVTOOLS_TREE_STYLES
+
+if TYPE_CHECKING:
+  from adk_agent_sim.ui.components.devtools_tree.smart_blob import BlobViewState
 
 
 class ValueType(Enum):
@@ -84,6 +87,8 @@ class DevToolsTree:
     data: Any,
     tree_id: str,
     expansion_state: TreeExpansionState | None = None,
+    blob_view_state: "BlobViewState | None" = None,
+    enable_smart_blobs: bool = True,
   ) -> None:
     """Initialize the DevTools tree.
 
@@ -91,10 +96,14 @@ class DevToolsTree:
       data: JSON-serializable data to display
       tree_id: Unique identifier for state tracking
       expansion_state: Optional expansion state manager (creates new if None)
+      blob_view_state: Optional blob view state manager for smart strings
+      enable_smart_blobs: Whether to detect and render JSON/MD in strings
     """
     self.data = data
     self.tree_id = tree_id
     self.expansion_state = expansion_state or TreeExpansionState(default_expanded=True)
+    self.blob_view_state = blob_view_state
+    self.enable_smart_blobs = enable_smart_blobs
     self._styles = DEVTOOLS_TREE_STYLES
 
   def render(self) -> None:
@@ -156,7 +165,7 @@ class DevToolsTree:
         if is_container:
           self._render_opening_brace(value, value_type, is_expanded)
         else:
-          self._render_primitive(value, value_type)
+          self._render_primitive(value, value_type, path)
 
       # Render children and closing brace if expanded container
       if is_container and is_expanded:
@@ -242,15 +251,24 @@ class DevToolsTree:
           f'innerHTML="{preview}"'
         )
 
-  def _render_primitive(self, value: Any, value_type: ValueType) -> None:
+  def _render_primitive(self, value: Any, value_type: ValueType, path: str) -> None:
     """Render a primitive value with syntax coloring.
+
+    For string values, may use SmartBlobRenderer if enabled and the string
+    contains structured content (JSON or Markdown).
 
     Args:
       value: The primitive value
       value_type: The value's type
+      path: Node path for smart blob state tracking
     """
     if value_type == ValueType.STRING:
-      # Escape HTML and quotes, replace newlines with visible indicator
+      # Check if we should use smart blob rendering
+      if self.enable_smart_blobs and self._should_use_smart_blob(value):
+        self._render_smart_blob_string(value, path)
+        return
+
+      # Standard string rendering
       escaped = str(value).replace("&", "&amp;")
       escaped = escaped.replace("<", "&lt;").replace(">", "&gt;")
       # Use HTML entity for backslash to ensure it renders correctly
@@ -279,6 +297,64 @@ class DevToolsTree:
     ui.element("span").classes("devtools-tree-value").style(f"color: {color};").props(
       f'innerHTML="{display}"'
     )
+
+  def _should_use_smart_blob(self, value: str) -> bool:
+    """Check if a string should use smart blob rendering.
+
+    Only uses smart blobs for strings that contain structured content.
+    Short strings or plain text are rendered inline.
+
+    Args:
+      value: String value to check
+
+    Returns:
+      True if smart blob rendering should be used
+    """
+    # Skip empty or very short strings
+    if not value or len(value) < 10:
+      return False
+
+    # Import here to avoid circular dependency
+    from adk_agent_sim.ui.components.devtools_tree.smart_blob import (
+      BlobType,
+      SmartBlobDetector,
+    )
+
+    detected = SmartBlobDetector.detect_type(value)
+    return detected != BlobType.PLAIN_TEXT
+
+  def _render_smart_blob_string(self, value: str, path: str) -> None:
+    """Render a string value using SmartBlobRenderer.
+
+    Args:
+      value: String content to render
+      path: Node path for state tracking
+    """
+    # Import here to avoid circular dependency
+    from adk_agent_sim.ui.components.devtools_tree.smart_blob import (
+      BlobViewState,
+      SmartBlobDetector,
+    )
+    from adk_agent_sim.ui.components.devtools_tree.smart_blob_renderer import (
+      SmartBlobRenderer,
+    )
+
+    detected_type = SmartBlobDetector.detect_type(value)
+
+    # Get or create blob view state
+    blob_state = self.blob_view_state
+    if blob_state is None:
+      blob_state = BlobViewState()
+
+    # Use path as blob_id for state tracking
+    renderer = SmartBlobRenderer(
+      value=value,
+      blob_id=path,
+      detected_type=detected_type,
+      blob_view_state=blob_state,
+      expansion_state=self.expansion_state,
+    )
+    renderer.render()
 
   def _render_children_and_close(
     self,

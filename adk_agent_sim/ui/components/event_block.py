@@ -1,6 +1,5 @@
 """Event block components for rendering history entries in the event stream."""
 
-import json
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING
 
@@ -14,8 +13,15 @@ from adk_agent_sim.models.history import (
   ToolOutput,
   UserQuery,
 )
-from adk_agent_sim.ui.components.json_tree import render_json_tree
-from adk_agent_sim.ui.components.text_presenter import render_text_presenter
+from adk_agent_sim.ui.components.devtools_tree import (
+  BlobViewState,
+  DevToolsTree,
+  SmartBlobRenderer,
+  TreeExpansionState,
+)
+from adk_agent_sim.ui.components.devtools_tree.smart_blob import (
+  SmartBlobDetector,
+)
 from adk_agent_sim.ui.styles import (
   EVENT_BLOCK_STYLE,
   EVENT_ICONS,
@@ -36,6 +42,8 @@ class EventBlock(ABC):
     expanded: bool = True,
     event_id: str | None = None,
     state_manager: ExpansionStateManager | None = None,
+    tree_expansion_state: TreeExpansionState | None = None,
+    blob_view_state: BlobViewState | None = None,
   ) -> None:
     """
     Initialize the event block.
@@ -45,13 +53,55 @@ class EventBlock(ABC):
       expanded: Initial expansion state for collapsible content (default True per spec)
       event_id: Unique identifier for state tracking
       state_manager: Optional manager for expand/collapse state persistence
+      tree_expansion_state: Optional expansion state for DevToolsTree components
+      blob_view_state: Optional view state for smart blob rendering
     """
     self.entry = entry
     self.expanded = expanded
     self.event_id = event_id
     self.state_manager = state_manager
+    # State managers for DevToolsTree components (create defaults if not provided)
+    self.tree_expansion_state = tree_expansion_state or TreeExpansionState(
+      default_expanded=True
+    )
+    self.blob_view_state = blob_view_state or BlobViewState()
     self._card: ui.card | None = None
     self._expansions: list[tuple[str, ui.expansion]] = []  # (section_name, expansion)
+
+  def _render_devtools_tree(self, data: object, label: str) -> None:
+    """Render data using DevToolsTree component.
+
+    Args:
+      data: JSON-serializable data to render
+      label: Label for unique tree ID generation
+    """
+    tree_id = f"{self.event_id}_{label}" if self.event_id else label
+    tree = DevToolsTree(
+      data=data,
+      tree_id=tree_id,
+      expansion_state=self.tree_expansion_state,
+      blob_view_state=self.blob_view_state,
+    )
+    tree.render()
+
+  def _render_smart_string(self, value: str, label: str) -> None:
+    """Render a string value with smart blob detection.
+
+    Args:
+      value: String content to render
+      label: Label for unique blob ID generation
+    """
+    blob_id = f"{self.event_id}_{label}" if self.event_id else label
+    detected_type = SmartBlobDetector.detect_type(value)
+
+    renderer = SmartBlobRenderer(
+      value=value,
+      blob_id=blob_id,
+      detected_type=detected_type,
+      blob_view_state=self.blob_view_state,
+      expansion_state=self.tree_expansion_state,
+    )
+    renderer.render()
 
   def _get_expansion_state(self, section: str) -> bool:
     """Get the expansion state for a section.
@@ -221,12 +271,7 @@ class ToolExecutionBlock(EventBlock):
     # Arguments section
     if self.call.arguments:
       with self._create_expansion("Arguments", "code").classes("mb-2"):
-        render_json_tree(
-          self.call.arguments,
-          label="args",
-          expanded=True,
-          max_depth=2,
-        )
+        self._render_devtools_tree(self.call.arguments, "args")
 
     # Result section (if output available)
     if self.output:
@@ -234,18 +279,11 @@ class ToolExecutionBlock(EventBlock):
       ui.label(f"Duration: {duration_str}").classes("text-xs text-gray-500 mb-1")
 
       with self._create_expansion("Result", "check_circle"):
-        # Use TextPresenter for string results (supports Raw/JSON/Markdown toggle)
+        # Use SmartBlobRenderer for string results (supports RAW/JSON/Markdown toggle)
         if isinstance(self.output.result, str):
-          element_id = f"tool_exec_{self.call.call_id}_result"
-          render_text_presenter(self.output.result, element_id)
+          self._render_smart_string(self.output.result, "result")
         else:
-          render_json_tree(
-            self.output.result,
-            label="result",
-            expanded=True,
-            max_depth=2,
-            truncate=True,
-          )
+          self._render_devtools_tree(self.output.result, "result")
 
 
 class ToolCallBlock(EventBlock):
@@ -268,12 +306,7 @@ class ToolCallBlock(EventBlock):
 
     if self.entry.arguments:
       with self._create_expansion("Arguments", "code"):
-        render_json_tree(
-          self.entry.arguments,
-          label="args",
-          expanded=True,
-          max_depth=2,
-        )
+        self._render_devtools_tree(self.entry.arguments, "args")
 
 
 class ToolOutputBlock(EventBlock):
@@ -296,18 +329,11 @@ class ToolOutputBlock(EventBlock):
     ui.label(f"Duration: {duration_str}").classes("text-xs text-gray-500 mb-1")
 
     with self._create_expansion("Result", "check_circle"):
-      # Use TextPresenter for string results (supports Raw/JSON/Markdown toggle)
+      # Use SmartBlobRenderer for string results (supports RAW/JSON/Markdown toggle)
       if isinstance(self.entry.result, str):
-        element_id = f"tool_output_{self.entry.call_id}_result"
-        render_text_presenter(self.entry.result, element_id)
+        self._render_smart_string(self.entry.result, "result")
       else:
-        render_json_tree(
-          self.entry.result,
-          label="result",
-          expanded=True,
-          max_depth=2,
-          truncate=True,
-        )
+        self._render_devtools_tree(self.entry.result, "result")
 
 
 class ToolErrorBlock(EventBlock):
@@ -358,22 +384,9 @@ class AgentResponseBlock(EventBlock):
     """Render final response content."""
     content = self.entry.content
 
-    # Try to parse as JSON for structured display
-    try:
-      parsed = json.loads(content)
-      if isinstance(parsed, (dict, list)):
-        render_json_tree(
-          parsed,
-          label="response",
-          expanded=True,
-          max_depth=3,
-        )
-        return
-    except (json.JSONDecodeError, TypeError):
-      pass
-
-    # Plain text display
-    ui.markdown(content).classes("text-sm")
+    # Use SmartBlobRenderer for intelligent content rendering
+    # It will auto-detect JSON and render appropriately
+    self._render_smart_string(content, "response")
 
 
 class LoadingBlock:

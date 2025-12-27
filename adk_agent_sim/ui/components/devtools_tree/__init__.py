@@ -21,6 +21,10 @@ from adk_agent_sim.ui.components.devtools_tree.smart_blob import (
   BlobViewState,
   SmartBlobDetector,
 )
+from adk_agent_sim.ui.components.devtools_tree.smart_blob_renderer import (
+  SmartBlobRenderer,
+  render_smart_blob,
+)
 
 __all__ = [
   "BlobTogglePills",
@@ -28,7 +32,9 @@ __all__ = [
   "BlobViewState",
   "DevToolsTree",
   "SmartBlobDetector",
+  "SmartBlobRenderer",
   "TreeExpansionState",
   "ValueType",
   "_get_value_type",
+  "render_smart_blob",
 ]
