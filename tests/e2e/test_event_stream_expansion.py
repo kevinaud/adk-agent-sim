@@ -531,3 +531,155 @@ class TestEventStreamGlobalControls:
       f"chevron_right {chevron_after_collapse}"
       f"->{chevron_after_expand}"
     )
+
+
+# =============================================================================
+# Test Class: DevToolsTree Individual Node Toggle
+# =============================================================================
+
+
+class TestDevToolsTreeNodeToggle:
+  """E2E tests for individual DevToolsTree node expand/collapse toggle.
+
+  These tests verify that clicking on a tree node's chevron icon
+  toggles the expand/collapse state of that specific node.
+  """
+
+  def test_clicking_tree_toggle_collapses_node(self, page: Page) -> None:
+    """Verify clicking an expanded node's toggle collapses it.
+
+    Given a DevToolsTree with expanded nodes (default state),
+    When the user clicks the expand_more chevron on a node,
+    Then that node collapses and shows chevron_right instead.
+    """
+    # Setup: Start session and execute a tool with nested JSON output
+    start_session_and_execute_complex_tool(page)
+
+    # Wait for tool output block
+    tool_output_block = page.locator('.q-card:has-text("Tool Output")').first
+    tool_output_block.wait_for(timeout=ELEMENT_TIMEOUT)
+
+    # Wait for the Result expansion section to be visible and expanded
+    tool_output_block.locator(".q-expansion-item--expanded").first.wait_for(
+      timeout=ELEMENT_TIMEOUT
+    )
+
+    # Find DevToolsTree toggles - they have the 'devtools-tree-toggle' class
+    toggle_selector = ".devtools-tree-toggle"
+    toggles = page.locator(toggle_selector)
+
+    # Wait for toggles to be present
+    toggles.first.wait_for(timeout=ELEMENT_TIMEOUT)
+
+    # Get initial state - count expand_more icons (expanded nodes)
+    initial_toggle_count = toggles.count()
+    assert initial_toggle_count > 0, "Should have at least one tree toggle"
+
+    # Get the first toggle's icon text
+    first_toggle = toggles.first
+    initial_icon = first_toggle.inner_text()
+    assert initial_icon == "expand_more", (
+      f"First toggle should be expanded (expand_more), got: {initial_icon}"
+    )
+
+    # Click the first toggle to collapse it
+    first_toggle.click()
+
+    # Wait for the UI to update
+    page.wait_for_timeout(500)
+
+    # After clicking, the icon should change to chevron_right (collapsed)
+    updated_icon = first_toggle.inner_text()
+    assert updated_icon == "chevron_right", (
+      f"After clicking, toggle should be collapsed (chevron_right), "
+      f"got: {updated_icon}"
+    )
+
+  def test_clicking_collapsed_toggle_expands_node(self, page: Page) -> None:
+    """Verify clicking a collapsed node's toggle expands it.
+
+    Given a DevToolsTree with a collapsed node,
+    When the user clicks the chevron_right chevron on that node,
+    Then that node expands and shows expand_more instead.
+    """
+    # Setup: Start session and execute a tool with nested JSON output
+    start_session_and_execute_complex_tool(page)
+
+    # Wait for tool output block
+    tool_output_block = page.locator('.q-card:has-text("Tool Output")').first
+    tool_output_block.wait_for(timeout=ELEMENT_TIMEOUT)
+
+    # Wait for the Result expansion section to be visible
+    tool_output_block.locator(".q-expansion-item--expanded").first.wait_for(
+      timeout=ELEMENT_TIMEOUT
+    )
+
+    # Find DevToolsTree toggles
+    toggle_selector = ".devtools-tree-toggle"
+    toggles = page.locator(toggle_selector)
+    toggles.first.wait_for(timeout=ELEMENT_TIMEOUT)
+
+    # First collapse a node by clicking it
+    first_toggle = toggles.first
+    first_toggle.click()
+    page.wait_for_timeout(500)
+
+    # Verify it's now collapsed
+    collapsed_icon = first_toggle.inner_text()
+    assert collapsed_icon == "chevron_right", (
+      f"Toggle should be collapsed after first click, got: {collapsed_icon}"
+    )
+
+    # Now click again to expand
+    first_toggle.click()
+    page.wait_for_timeout(500)
+
+    # After clicking again, the icon should change back to expand_more
+    expanded_icon = first_toggle.inner_text()
+    assert expanded_icon == "expand_more", (
+      f"After clicking collapsed toggle, should expand (expand_more), "
+      f"got: {expanded_icon}"
+    )
+
+  def test_collapsing_node_hides_children(self, page: Page) -> None:
+    """Verify collapsing a node hides its child elements.
+
+    Given a DevToolsTree with expanded nested nodes,
+    When the user collapses a parent node,
+    Then the child nodes are no longer visible.
+    """
+    # Setup: Start session and execute a tool with nested JSON output
+    start_session_and_execute_complex_tool(page)
+
+    # Wait for tool output block
+    tool_output_block = page.locator('.q-card:has-text("Tool Output")').first
+    tool_output_block.wait_for(timeout=ELEMENT_TIMEOUT)
+
+    # Wait for the Result expansion section to be visible
+    tool_output_block.locator(".q-expansion-item--expanded").first.wait_for(
+      timeout=ELEMENT_TIMEOUT
+    )
+
+    # Find DevToolsTree toggles WITHIN the tool output block only
+    toggle_selector = ".devtools-tree-toggle"
+    toggles_in_block = tool_output_block.locator(toggle_selector)
+    toggles_in_block.first.wait_for(timeout=ELEMENT_TIMEOUT)
+
+    # Count initial toggles within this specific block
+    initial_toggle_count = toggles_in_block.count()
+    assert initial_toggle_count > 1, (
+      f"Should have multiple toggles for nested structure, got {initial_toggle_count}"
+    )
+
+    # Click the first (root) toggle to collapse the tree
+    first_toggle = toggles_in_block.first
+    first_toggle.click()
+    page.wait_for_timeout(500)
+
+    # After collapsing root, there should be fewer visible toggles in this block
+    # (child toggles are hidden when parent is collapsed)
+    final_toggle_count = toggles_in_block.count()
+    assert final_toggle_count < initial_toggle_count, (
+      f"Collapsing root should hide child toggles: "
+      f"{initial_toggle_count} -> {final_toggle_count}"
+    )
