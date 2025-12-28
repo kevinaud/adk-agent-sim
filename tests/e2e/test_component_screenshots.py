@@ -118,51 +118,7 @@ SCREENSHOT_TESTS: list[ComponentScreenshot] = [
     description="Agent card without description",
   ),
   # -------------------------------------------------------------------------
-  # JsonTree variations
-  # -------------------------------------------------------------------------
-  ComponentScreenshot(
-    component="JsonTree",
-    test_name="simple_object",
-    params={
-      "data": '{"name": "Alice", "age": 30, "active": true}',
-      "label": "user",
-      "expanded": "true",
-    },
-    description="Simple JSON object with primitive values",
-  ),
-  ComponentScreenshot(
-    component="JsonTree",
-    test_name="nested_object",
-    params={
-      "data": '{"user": {"name": "Bob", "settings": {"theme": "dark"}}, "count": 42}',
-      "label": "config",
-      "expanded": "true",
-      "max_depth": "3",
-    },
-    description="Nested JSON object structure",
-  ),
-  ComponentScreenshot(
-    component="JsonTree",
-    test_name="array_data",
-    params={
-      "data": '[{"id": 1, "name": "Item 1"}, {"id": 2, "name": "Item 2"}]',
-      "label": "items",
-      "expanded": "true",
-    },
-    description="JSON array with objects",
-  ),
-  ComponentScreenshot(
-    component="JsonTree",
-    test_name="collapsed",
-    params={
-      "data": '{"nested": {"deep": {"value": 123}}}',
-      "label": "data",
-      "expanded": "false",
-    },
-    description="Collapsed JSON tree",
-  ),
-  # -------------------------------------------------------------------------
-  # DevToolsTree variations (new component - clean-room implementation)
+  # DevToolsTree variations (replaced JsonTree - clean-room implementation)
   # -------------------------------------------------------------------------
   ComponentScreenshot(
     component="DevToolsTree",

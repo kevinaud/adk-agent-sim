@@ -88,7 +88,7 @@ class TextPresenter:
 
   Supports three modes:
   - Raw: Plain text, truncated at 500 chars with "Show More" link
-  - JSON: Renders using JsonTree component (pretty-printed, collapsible)
+  - JSON: Renders using DevToolsTree component (pretty-printed, collapsible)
   - Markdown: Renders using ui.markdown() for formatted display
 
   Auto-detection defaults to JSON if content is valid JSON, otherwise Raw.

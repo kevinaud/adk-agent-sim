@@ -228,9 +228,13 @@ class UserInputBlock(EventBlock):
     expanded: bool = True,
     event_id: str | None = None,
     state_manager: ExpansionStateManager | None = None,
+    tree_expansion_state: TreeExpansionState | None = None,
+    blob_view_state: BlobViewState | None = None,
   ) -> None:
     """Initialize user input block."""
-    super().__init__(entry, expanded, event_id, state_manager)
+    super().__init__(
+      entry, expanded, event_id, state_manager, tree_expansion_state, blob_view_state
+    )
     self.entry: UserQuery = entry
 
   def render_content(self) -> None:
@@ -248,6 +252,8 @@ class ToolExecutionBlock(EventBlock):
     expanded: bool = True,
     event_id: str | None = None,
     state_manager: ExpansionStateManager | None = None,
+    tree_expansion_state: TreeExpansionState | None = None,
+    blob_view_state: BlobViewState | None = None,
   ) -> None:
     """
     Initialize tool execution block.
@@ -258,8 +264,12 @@ class ToolExecutionBlock(EventBlock):
       expanded: Initial expansion state
       event_id: Unique identifier for state tracking
       state_manager: Optional manager for expand/collapse state persistence
+      tree_expansion_state: Optional shared expansion state for DevToolsTree components
+      blob_view_state: Optional shared view state for smart blob rendering
     """
-    super().__init__(call, expanded, event_id, state_manager)
+    super().__init__(
+      call, expanded, event_id, state_manager, tree_expansion_state, blob_view_state
+    )
     self.call: ToolCall = call
     self.output = output
 
@@ -295,9 +305,13 @@ class ToolCallBlock(EventBlock):
     expanded: bool = True,
     event_id: str | None = None,
     state_manager: ExpansionStateManager | None = None,
+    tree_expansion_state: TreeExpansionState | None = None,
+    blob_view_state: BlobViewState | None = None,
   ) -> None:
     """Initialize tool call block."""
-    super().__init__(entry, expanded, event_id, state_manager)
+    super().__init__(
+      entry, expanded, event_id, state_manager, tree_expansion_state, blob_view_state
+    )
     self.entry: ToolCall = entry
 
   def render_content(self) -> None:
@@ -318,9 +332,13 @@ class ToolOutputBlock(EventBlock):
     expanded: bool = True,
     event_id: str | None = None,
     state_manager: ExpansionStateManager | None = None,
+    tree_expansion_state: TreeExpansionState | None = None,
+    blob_view_state: BlobViewState | None = None,
   ) -> None:
     """Initialize tool output block."""
-    super().__init__(entry, expanded, event_id, state_manager)
+    super().__init__(
+      entry, expanded, event_id, state_manager, tree_expansion_state, blob_view_state
+    )
     self.entry: ToolOutput = entry
 
   def render_content(self) -> None:
@@ -345,9 +363,13 @@ class ToolErrorBlock(EventBlock):
     expanded: bool = True,
     event_id: str | None = None,
     state_manager: ExpansionStateManager | None = None,
+    tree_expansion_state: TreeExpansionState | None = None,
+    blob_view_state: BlobViewState | None = None,
   ) -> None:
     """Initialize tool error block."""
-    super().__init__(entry, expanded, event_id, state_manager)
+    super().__init__(
+      entry, expanded, event_id, state_manager, tree_expansion_state, blob_view_state
+    )
     self.entry: ToolError = entry
 
   def render_content(self) -> None:
@@ -375,9 +397,13 @@ class AgentResponseBlock(EventBlock):
     expanded: bool = True,
     event_id: str | None = None,
     state_manager: ExpansionStateManager | None = None,
+    tree_expansion_state: TreeExpansionState | None = None,
+    blob_view_state: BlobViewState | None = None,
   ) -> None:
     """Initialize agent response block."""
-    super().__init__(entry, expanded, event_id, state_manager)
+    super().__init__(
+      entry, expanded, event_id, state_manager, tree_expansion_state, blob_view_state
+    )
     self.entry: FinalResponse = entry
 
   def render_content(self) -> None:
@@ -419,6 +445,8 @@ def create_event_block(
   expanded: bool = True,
   event_id: str | None = None,
   state_manager: ExpansionStateManager | None = None,
+  tree_expansion_state: TreeExpansionState | None = None,
+  blob_view_state: BlobViewState | None = None,
 ) -> EventBlock:
   """
   Factory function to create the appropriate EventBlock for a history entry.
@@ -428,21 +456,33 @@ def create_event_block(
     expanded: Initial expansion state (default True per spec)
     event_id: Unique identifier for state tracking
     state_manager: Optional manager for expand/collapse state persistence
+    tree_expansion_state: Optional shared expansion state for DevToolsTree components
+    blob_view_state: Optional shared view state for smart blob rendering
 
   Returns:
     The appropriate EventBlock subclass instance
   """
   if isinstance(entry, UserQuery):
-    return UserInputBlock(entry, expanded, event_id, state_manager)
+    return UserInputBlock(
+      entry, expanded, event_id, state_manager, tree_expansion_state, blob_view_state
+    )
   elif isinstance(entry, ToolCall):
-    return ToolCallBlock(entry, expanded, event_id, state_manager)
+    return ToolCallBlock(
+      entry, expanded, event_id, state_manager, tree_expansion_state, blob_view_state
+    )
   elif isinstance(entry, ToolOutput):
-    return ToolOutputBlock(entry, expanded, event_id, state_manager)
+    return ToolOutputBlock(
+      entry, expanded, event_id, state_manager, tree_expansion_state, blob_view_state
+    )
   elif isinstance(entry, ToolError):
-    return ToolErrorBlock(entry, expanded, event_id, state_manager)
+    return ToolErrorBlock(
+      entry, expanded, event_id, state_manager, tree_expansion_state, blob_view_state
+    )
   else:
     # FinalResponse is the only remaining type in the union
-    return AgentResponseBlock(entry, expanded, event_id, state_manager)
+    return AgentResponseBlock(
+      entry, expanded, event_id, state_manager, tree_expansion_state, blob_view_state
+    )
 
 
 def render_event_block(
@@ -450,6 +490,8 @@ def render_event_block(
   expanded: bool = True,
   event_id: str | None = None,
   state_manager: ExpansionStateManager | None = None,
+  tree_expansion_state: TreeExpansionState | None = None,
+  blob_view_state: BlobViewState | None = None,
 ) -> None:
   """
   Render an event block for a history entry.
@@ -459,11 +501,15 @@ def render_event_block(
     expanded: Initial expansion state for collapsible content (default True per spec)
     event_id: Unique ID for state tracking (generated from entry if not provided)
     state_manager: Optional state manager for expand/collapse persistence
+    tree_expansion_state: Optional shared expansion state for DevToolsTree components
+    blob_view_state: Optional shared view state for smart blob rendering
   """
   # Generate event_id from entry if not provided
   if event_id is None:
     # Use timestamp + type as unique identifier
     event_id = f"{entry.timestamp.isoformat()}_{entry.type}"
 
-  block = create_event_block(entry, expanded, event_id, state_manager)
+  block = create_event_block(
+    entry, expanded, event_id, state_manager, tree_expansion_state, blob_view_state
+  )
   block.render()

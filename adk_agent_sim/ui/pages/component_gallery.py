@@ -28,7 +28,6 @@ from adk_agent_sim.ui.components.devtools_tree import (
 )
 from adk_agent_sim.ui.components.event_block import LoadingBlock, create_event_block
 from adk_agent_sim.ui.components.gallery_engine import ComponentRegistry, GalleryEngine
-from adk_agent_sim.ui.components.json_tree import JsonTree
 from adk_agent_sim.ui.components.text_presenter import TextPresenter
 from adk_agent_sim.ui.components.tool_catalog import ToolCatalog
 
@@ -492,7 +491,6 @@ def action_panel_default() -> ActionPanel:
 REGISTRY: ComponentRegistry = {
   # Simple Components (class-based, query param driven)
   "AgentCard": AgentCard,
-  "JsonTree": JsonTree,
   "DevToolsTree": DevToolsTree,
   "TextPresenter": TextPresenter,
   "LoadingBlock": LoadingBlock,

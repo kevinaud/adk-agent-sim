@@ -6,6 +6,17 @@ from adk_agent_sim.ui.components.agent_card import (
   render_agent_card,
   render_agent_card_grid,
 )
+from adk_agent_sim.ui.components.devtools_tree import (
+  BlobTogglePills,
+  BlobType,
+  BlobViewState,
+  DevToolsTree,
+  SmartBlobDetector,
+  SmartBlobRenderer,
+  TreeExpansionState,
+  ValueType,
+  render_smart_blob,
+)
 from adk_agent_sim.ui.components.event_block import (
   AgentResponseBlock,
   EventBlock,
@@ -22,11 +33,6 @@ from adk_agent_sim.ui.components.event_stream import (
   EventStream,
   RefreshableEventStream,
   render_event_stream,
-)
-from adk_agent_sim.ui.components.json_tree import (
-  JsonTree,
-  TruncatedJsonTree,
-  render_json_tree,
 )
 from adk_agent_sim.ui.components.text_presenter import (
   PresentationMode,
@@ -50,6 +56,16 @@ __all__ = [
   "AgentCardGrid",
   "render_agent_card",
   "render_agent_card_grid",
+  # DevTools Tree (replaces JsonTree)
+  "BlobTogglePills",
+  "BlobType",
+  "BlobViewState",
+  "DevToolsTree",
+  "SmartBlobDetector",
+  "SmartBlobRenderer",
+  "TreeExpansionState",
+  "ValueType",
+  "render_smart_blob",
   # Event Blocks
   "AgentResponseBlock",
   "EventBlock",
@@ -65,10 +81,6 @@ __all__ = [
   "EventStream",
   "RefreshableEventStream",
   "render_event_stream",
-  # JSON Tree
-  "JsonTree",
-  "TruncatedJsonTree",
-  "render_json_tree",
   # Text Presenter
   "PresentationMode",
   "PresentationModeManager",
