@@ -3,6 +3,7 @@
 from nicegui import ui
 
 from adk_agent_sim.models.history import HistoryEntry
+from adk_agent_sim.ui.components.devtools_tree import BlobViewState, TreeExpansionState
 from adk_agent_sim.ui.components.event_block import LoadingBlock, render_event_block
 from adk_agent_sim.ui.components.expansion_state import ExpansionStateManager
 from adk_agent_sim.ui.styles import LAYOUT
@@ -33,20 +34,59 @@ class EventStream:
     self._auto_scroll = True
     # State manager persists expand/collapse state across refreshes
     self._state_manager = ExpansionStateManager(default_expanded=True)
+    # Global expansion state shared across all DevToolsTree instances
+    self._tree_expansion_state = TreeExpansionState(default_expanded=True)
+    # Global blob view state shared across all SmartBlobRenderer instances
+    self._blob_view_state = BlobViewState()
 
   def _generate_event_id(self, entry: HistoryEntry, index: int) -> str:
     """Generate a stable event ID for state tracking."""
     # Use timestamp + type + index to ensure uniqueness
     return f"{entry.timestamp.isoformat()}_{entry.type}_{index}"
 
+  def _expand_all(self) -> None:
+    """Expand all tree nodes and refresh the stream."""
+    self._tree_expansion_state.default_expanded = True
+    self._tree_expansion_state.reset()
+    if self._container:
+      self._container.clear()
+      with self._container:
+        self._render_events()
+
+  def _collapse_all(self) -> None:
+    """Collapse all tree nodes and refresh the stream."""
+    self._tree_expansion_state.default_expanded = False
+    self._tree_expansion_state.reset()
+    if self._container:
+      self._container.clear()
+      with self._container:
+        self._render_events()
+
   def render(self) -> None:
     """Render the event stream component."""
     with ui.column().classes("w-full h-full"):
-      # Stream header
+      # Stream header with global controls
       with ui.row().classes("w-full items-center justify-between mb-2 px-1"):
         ui.label("Event Stream").classes("text-lg font-semibold text-gray-700")
-        if self.history:
-          ui.badge(f"{len(self.history)} events", color="blue-3").props("outline")
+
+        # Right side: event count badge and expand/collapse buttons
+        # Global buttons are always rendered for consistency
+        with ui.row().classes("items-center gap-2"):
+          # Badge shows event count (only when there are events)
+          if self.history:
+            ui.badge(f"{len(self.history)} events", color="blue-3").props("outline")
+
+          # Global expand/collapse buttons - always visible
+          # unfold_more/unfold_less icons uniquely identify these in the header
+          ui.button(
+            icon="unfold_more",
+            on_click=self._expand_all,
+          ).props("flat dense size=sm").tooltip("Expand All Trees")
+
+          ui.button(
+            icon="unfold_less",
+            on_click=self._collapse_all,
+          ).props("flat dense size=sm").tooltip("Collapse All Trees")
 
       # Scrollable event container
       self._scroll_area = (
@@ -74,6 +114,8 @@ class EventStream:
         expanded=True,
         event_id=event_id,
         state_manager=self._state_manager,
+        tree_expansion_state=self._tree_expansion_state,
+        blob_view_state=self._blob_view_state,
       )
 
     # Show loading block if executing
@@ -134,10 +176,26 @@ class RefreshableEventStream:
     self._scroll_area: ui.scroll_area | None = None
     # State manager persists expand/collapse state across refreshes
     self._state_manager = ExpansionStateManager(default_expanded=True)
+    # Global expansion state shared across all DevToolsTree instances
+    self._tree_expansion_state = TreeExpansionState(default_expanded=True)
+    # Global blob view state shared across all SmartBlobRenderer instances
+    self._blob_view_state = BlobViewState()
 
   def _generate_event_id(self, entry: HistoryEntry, index: int) -> str:
     """Generate a stable event ID for state tracking."""
     return f"{entry.timestamp.isoformat()}_{entry.type}_{index}"
+
+  def _expand_all(self) -> None:
+    """Expand all tree nodes and refresh the stream."""
+    self._tree_expansion_state.default_expanded = True
+    self._tree_expansion_state.reset()
+    self._render_stream.refresh()
+
+  def _collapse_all(self) -> None:
+    """Collapse all tree nodes and refresh the stream."""
+    self._tree_expansion_state.default_expanded = False
+    self._tree_expansion_state.reset()
+    self._render_stream.refresh()
 
   def set_state(
     self,
@@ -180,6 +238,8 @@ class RefreshableEventStream:
           expanded=True,
           event_id=event_id,
           state_manager=self._state_manager,
+          tree_expansion_state=self._tree_expansion_state,
+          blob_view_state=self._blob_view_state,
         )
 
       # Loading block
@@ -190,16 +250,31 @@ class RefreshableEventStream:
   def render(self) -> None:
     """Render the complete event stream."""
     with ui.column().classes("w-full h-full"):
-      # Header
+      # Header with global controls
       with ui.row().classes("w-full items-center justify-between mb-2 px-1"):
         ui.label("Event Stream").classes("text-lg font-semibold text-gray-700")
 
-        @ui.refreshable
-        def render_badge() -> None:
-          if self._history:
-            ui.badge(f"{len(self._history)} events", color="blue-3").props("outline")
+        # Right side: event count badge and expand/collapse buttons
+        with ui.row().classes("items-center gap-2"):
 
-        render_badge()
+          @ui.refreshable
+          def render_badge() -> None:
+            if self._history:
+              ui.badge(f"{len(self._history)} events", color="blue-3").props("outline")
+
+          render_badge()
+
+          # Global expand/collapse buttons - always visible
+          # unfold_more/unfold_less icons uniquely identify these in the header
+          ui.button(
+            icon="unfold_more",
+            on_click=self._expand_all,
+          ).props("flat dense size=sm").tooltip("Expand All Trees")
+
+          ui.button(
+            icon="unfold_less",
+            on_click=self._collapse_all,
+          ).props("flat dense size=sm").tooltip("Collapse All Trees")
 
       # Scroll area
       self._scroll_area = (

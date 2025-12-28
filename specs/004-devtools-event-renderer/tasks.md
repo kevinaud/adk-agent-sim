@@ -230,48 +230,50 @@
 
 ### PR5 Setup
 
-- [ ] T108 [PR5] Ensure on updated main: `git checkout main && git pull origin main`
-- [ ] T109 [PR5] Create feature branch for PR5: `git checkout -b 004-devtools-event-renderer-pr5`
+- [x] T108 [PR5] Ensure on updated main: `git checkout main && git pull origin main`
+- [x] T109 [PR5] Create feature branch for PR5: `git checkout -b 004-devtools-event-renderer-pr5`
 
 ### PR5 Implementation - Global Controls
 
-- [ ] T110 [PR5] Modify event_stream.py - add global TreeExpansionState shared across all event blocks
-- [ ] T111 [PR5] Add "Expand All" button to EventStream header
-- [ ] T112 [PR5] Add "Collapse All" button to EventStream header
-- [ ] T113 [PR5] Implement button click handlers that call global state expand_all()/collapse_all()
-- [ ] T114 [PR5] Ensure all DevToolsTree instances use shared expansion state
-- [ ] T115 [PR5] Add refresh mechanism to update all trees when global state changes
+- [x] T110 [PR5] Modify event_stream.py - add global TreeExpansionState shared across all event blocks
+- [x] T111 [PR5] Add "Expand All" button to EventStream header
+- [x] T112 [PR5] Add "Collapse All" button to EventStream header
+- [x] T113 [PR5] Implement button click handlers that call global state expand_all()/collapse_all()
+- [x] T114 [PR5] Ensure all DevToolsTree instances use shared expansion state
+- [x] T115 [PR5] Add refresh mechanism to update all trees when global state changes
 
 ### PR5 Implementation - Cleanup
 
-- [ ] T116 [PR5] Delete adk_agent_sim/ui/components/json_tree.py entirely
-- [ ] T117 [PR5] Remove any remaining imports of JsonTree or render_json_tree from codebase
-- [ ] T118 [PR5] Update __init__.py exports if json_tree was exported
-- [ ] T119 [PR5] Run grep to verify no json_tree references remain: `grep -r "json_tree\|JsonTree\|render_json_tree" adk_agent_sim/`
+- [x] T116 [PR5] Delete adk_agent_sim/ui/components/json_tree.py entirely
+- [x] T117 [PR5] Remove any remaining imports of JsonTree or render_json_tree from codebase
+- [x] T118 [PR5] Update __init__.py exports if json_tree was exported
+- [x] T119 [PR5] Run grep to verify no json_tree references remain: `grep -r "json_tree\|JsonTree\|render_json_tree" adk_agent_sim/`
 
 ### PR5 Implementation - Screenshots & Screenshot Tests
 
-- [ ] T120 [PR5] Analyze whether component screenshot tests need to be added or updated for global controls
+- [x] T120 [PR5] Analyze whether component screenshot tests need to be added or updated for global controls
 - [ ] T121 [PR5] Add EventStream global controls to component_gallery.py with factory functions
 - [ ] T122 [PR5] Add screenshot test configurations for EventStream with expand/collapse controls
 - [ ] T123 [PR5] Capture screenshot of DevToolsTree fully expanded state
 - [ ] T124 [PR5] Capture screenshot of DevToolsTree collapsed state
-- [ ] T124a [PR5] Execute all screenshot tests and verify final UI renders correctly
-- [ ] T124b [PR5] Verify screenshots reflect removal of JsonTree (no visual regressions)
+- [x] T124a [PR5] Execute all screenshot tests and verify final UI renders correctly
+- [x] T124b [PR5] Verify screenshots reflect removal of JsonTree (no visual regressions)
 
 ### PR5 Tests
 
-- [ ] T125 [PR5] Add E2E test for global "Expand All" button functionality
-- [ ] T126 [PR5] Add E2E test for global "Collapse All" button functionality
-- [ ] T127 [PR5] Add E2E test verifying no json_tree imports exist
-- [ ] T128 [PR5] Run full E2E test suite: `uv run pytest tests/e2e/ -v`
+- [x] T125 [PR5] Add E2E test for global "Expand All" button functionality
+- [x] T126 [PR5] Add E2E test for global "Collapse All" button functionality
+- [x] T127 [PR5] Add E2E test verifying no json_tree imports exist
+- [x] T128 [PR5] Run full E2E test suite: `uv run pytest tests/e2e/ -v`
 
 ### PR5 Quality & Submission
 
-- [ ] T129 [PR5] Run `./scripts/check_quality.sh` and fix any issues
-- [ ] T130 [PR5] Run full test suite: `uv run pytest -v`
-- [ ] T131 [PR5] Commit all changes with message: `feat(ui): add global expand/collapse controls and remove json_tree`
-- [ ] T132 [PR5] Push branch to remote: `git push -u origin 004-devtools-event-renderer-pr5`
+- [x] T129 [PR5] Run `./scripts/check_quality.sh` and fix any issues
+- [x] T130 [PR5] Run full test suite: `uv run pytest -v`
+- [x] T131 [PR5] Commit all changes with message: `feat(ui): add global expand/collapse controls and remove json_tree`
+- [x] T132 [PR5] Push branch to remote: `git push -u origin 004-devtools-event-renderer-pr5`
+- [x] T133 [PR5] Open PR via GitHub CLI: `gh pr create --title "feat(ui): Global Controls & Final Polish [PR5/5]" ...`
+- [ ] T134 [PR5] Wait for CI checks to complete: `gh pr checks --watch`
 - [ ] T133 [PR5] Open PR via GitHub CLI: `gh pr create --title "feat(ui): Global Controls & Final Polish [PR5/5]" --body "## Summary\nCompletes the DevTools-style event stream renderer:\n- Global Expand All / Collapse All buttons\n- Deletes old buggy json_tree.py\n- Screenshot baselines for new UI\n\n## User Stories\n- US2 (P1) - Manage Large Data Trees\n- US6 (P3) - Visual Aesthetic Matches DevTools\n\n## Test Plan\n- E2E tests for global controls\n- Full test suite passing\n- Screenshot verification\n\n## Breaking Changes\njson_tree.py deleted - all usages now use DevToolsTree\n\n## Part of\n004-devtools-event-renderer feature (PR 5 of 5) - FEATURE COMPLETE"`
 - [ ] T134 [PR5] Wait for CI checks to complete: `gh pr checks --watch`
 - [ ] T135 [PR5] If CI fails, retrieve logs: `gh run view --log-failed`, fix issues, commit, push, repeat T134

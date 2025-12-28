@@ -105,6 +105,7 @@ class DevToolsTree:
     self.blob_view_state = blob_view_state
     self.enable_smart_blobs = enable_smart_blobs
     self._styles = DEVTOOLS_TREE_STYLES
+    self._render_tree_content: Any = None  # Will hold the refreshable function
 
   def render(self) -> None:
     """Render the tree component."""
@@ -117,11 +118,17 @@ class DevToolsTree:
         f"line-height: {self._styles['line_height']}; "
       )
     ):
-      self._render_node(
-        value=self.data,
-        key=None,
-        path="root",
-      )
+      # Use @ui.refreshable to enable re-rendering on state changes
+      @ui.refreshable
+      def render_tree_content() -> None:
+        self._render_node(
+          value=self.data,
+          key=None,
+          path="root",
+        )
+
+      self._render_tree_content = render_tree_content
+      render_tree_content()
 
   def _render_node(
     self,
@@ -191,8 +198,9 @@ class DevToolsTree:
       path: Node path to toggle
     """
     self.expansion_state.toggle(path)
-    # Force re-render by updating the UI
-    # NiceGUI will handle the update through its reactive system
+    # Refresh the tree to reflect the new expansion state
+    if self._render_tree_content is not None:
+      self._render_tree_content.refresh()
 
   def _render_key(self, key: str | int) -> None:
     """Render a key/property name.
