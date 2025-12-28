@@ -271,7 +271,9 @@
 - [x] T129 [PR5] Run `./scripts/check_quality.sh` and fix any issues
 - [x] T130 [PR5] Run full test suite: `uv run pytest -v`
 - [x] T131 [PR5] Commit all changes with message: `feat(ui): add global expand/collapse controls and remove json_tree`
-- [ ] T132 [PR5] Push branch to remote: `git push -u origin 004-devtools-event-renderer-pr5`
+- [x] T132 [PR5] Push branch to remote: `git push -u origin 004-devtools-event-renderer-pr5`
+- [x] T133 [PR5] Open PR via GitHub CLI: `gh pr create --title "feat(ui): Global Controls & Final Polish [PR5/5]" ...`
+- [ ] T134 [PR5] Wait for CI checks to complete: `gh pr checks --watch`
 - [ ] T133 [PR5] Open PR via GitHub CLI: `gh pr create --title "feat(ui): Global Controls & Final Polish [PR5/5]" --body "## Summary\nCompletes the DevTools-style event stream renderer:\n- Global Expand All / Collapse All buttons\n- Deletes old buggy json_tree.py\n- Screenshot baselines for new UI\n\n## User Stories\n- US2 (P1) - Manage Large Data Trees\n- US6 (P3) - Visual Aesthetic Matches DevTools\n\n## Test Plan\n- E2E tests for global controls\n- Full test suite passing\n- Screenshot verification\n\n## Breaking Changes\njson_tree.py deleted - all usages now use DevToolsTree\n\n## Part of\n004-devtools-event-renderer feature (PR 5 of 5) - FEATURE COMPLETE"`
 - [ ] T134 [PR5] Wait for CI checks to complete: `gh pr checks --watch`
 - [ ] T135 [PR5] If CI fails, retrieve logs: `gh run view --log-failed`, fix issues, commit, push, repeat T134
